@@ -33,7 +33,7 @@
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/CarbCal.git
+    git clone https://github.com/LucaMurdoch/CarbCal.git
     ```
 2.  **Navigate to the directory:**
     ```bash
