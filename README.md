@@ -4,7 +4,7 @@
   <img src="CarbCal.png" alt="CarbCal Logo" width="150"/>
 </p>
 
-<h3 align="center">A modern, feature-rich web application for carbohydrate calculation and tracking.</h3>
+<h3 align="center">A modern, feature-rich web application for carbohydrate calculation.</h3>
 
 <p align="center">
   Built with pure HTML, CSS, and vanilla JavaScript, CarbCal offers a responsive, user-friendly interface with light/dark modes, online food search capabilities, and persistent local data storage.
