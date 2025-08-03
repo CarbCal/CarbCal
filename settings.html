@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <!-- Dark mode toggle fix attempt -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+        /* --- Base & Light Mode --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+
+        .navbar {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .navbar-brand {
+            color: #212529;
+        }
+
+        .container h2, .container h3 {
+            color: #212529;
+        }
+
+        .accordion-item {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            margin-bottom: .5rem; /* Matching list-group-item margin */
+        }
+
+        .accordion-button {
+            background-color: #f8f9fa;
+            color: #212529;
+            border-radius: 1.5rem; /* All corners curved when collapsed */
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background-color: #e7f1ff;
+            color: #0c63e4;
+            border-bottom-left-radius: 0; /* Flatten bottom when expanded */
+            border-bottom-right-radius: 0; /* Flatten bottom when expanded */
+        }
+
+        .accordion-body {
+            background-color: #fff;
+            color: #212529;
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+            border-top-left-radius: 0; /* Ensure top corners are not rounded when body is visible */
+            border-top-right-radius: 0; /* Ensure top corners are not rounded when body is visible */
+        }
+
+        /* --- Dark Mode Overrides --- */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .navbar {
+            background-color: #1f1f1f;
+            border-bottom: 1px solid #333;
+        }
+
+        body.dark-mode .navbar-brand {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .container h2,
+        body.dark-mode .container h3 {
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .accordion-item {
+            background-color: #2d2d2d !important;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,.3);
+        }
+
+        body.dark-mode .accordion-button {
+            background-color: #333;
+            color: #e0e0e0;
+            border-radius: 1.5rem; /* All corners curved when collapsed */
+        }
+        
+        body.dark-mode .accordion-button:not(.collapsed) {
+            background-color: #007bff;
+            color: #fff;
+            border-bottom-left-radius: 0; /* Flatten bottom when expanded */
+            border-bottom-right-radius: 0; /* Flatten bottom when expanded */
+        }
+
+        body.dark-mode .accordion-body {
+            background-color: #1f1f1f;
+            color: #e0e0e0;
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+            border-top-left-radius: 0; /* Ensure top corners are not rounded when body is visible */
+            border-top-right-radius: 0; /* Ensure top corners are not rounded when body is visible */
+        }
+
+        body.dark-mode .form-check-label {
+            color: #e0e0e0;
+        }
+
+        .form-check.form-switch {
+            display: flex !important;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a href="index.html" class="navbar-brand mb-0 h1"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <h2 class="mb-4">Settings</h2>
+        <div class="accordion mt-4" id="settingsAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingVisual">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVisual" aria-expanded="false" aria-controls="collapseVisual">
+                        Visual
+                    </button>
+                </h2>
+                <div id="collapseVisual" class="accordion-collapse collapse" aria-labelledby="headingVisual" data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                            <label class="form-check-label ms-2" for="darkModeToggle"><i class="bi bi-moon-stars-fill"></i> Dark Mode</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOnlineSearch">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOnlineSearch" aria-expanded="false" aria-controls="collapseOnlineSearch">
+                        Online Search
+                    </button>
+                </h2>
+                <div id="collapseOnlineSearch" class="accordion-collapse collapse" aria-labelledby="headingOnlineSearch" data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="forceOpenFoodFactsToggle">
+                            <label class="form-check-label ms-2" for="forceOpenFoodFactsToggle"><i class="bi bi-globe"></i> Force Open Food Facts API</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingAbout">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAbout" aria-expanded="false" aria-controls="collapseAbout">
+                        About Carb Calculator
+                    </button>
+                </h2>
+                <div id="collapseAbout" class="accordion-collapse collapse" aria-labelledby="headingAbout" data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+                        <p>This application helps you easily calculate carbohydrates, save your favorite food items, and find nutrition information online.</p>
+
+                        <h4 class="mt-4">How to Use</h4>
+                        <ul>
+                            <li><strong>Dark Mode Toggle:</strong> Switch between light and dark themes.</li>
+                            <li><strong>Carb Calculator:</strong> Calculate total carbs based on per 100g values and weight.</li>
+                            <li><strong>Online Search:</strong> Find nutrition data for various foods using external APIs.</li>
+                            <li><strong>Saved Items:</strong> Store and manage your frequently used food items.</li>
+                        </ul>
+
+                        <h4 class="mt-4">Features in Detail</h4>
+                        <h5 class="mt-2">1. Dark Mode Toggle</h5>
+                        <p>Switch between a light and dark theme for comfortable viewing. Your preference is saved automatically. You can find the toggle switch in the <strong>top right corner of the navigation bar</strong> on both the main app and settings pages.</p>
+
+                        <h5 class="mt-4">2. Carb Calculator</h5>
+                        <p>
+                            Enter the "Carbohydrates per 100g" of your food and its "Weight of Food (g)" in the input fields. Click the <strong>"Calculate" button</strong> to see the total carbohydrates. The result will appear in a card below. You can then label your calculated item in the <strong>"Label your item" text box</strong> and click the <strong>"Add" button</strong> to save it to your "Saved Items" list. The <strong>"Close" button</strong> on the result card will hide it.
+                        </p>
+
+                        <h5 class="mt-4">3. Online Search</h5>
+                        <p>
+                            To search for food items online, navigate to the <strong>"Online Search" tab</strong>. Type your query into the <strong>search box</strong> and click the <strong>"Search" button</strong>. The app will first try to find results using the Nutritionix API. If that doesn't work (e.g., due to API limits), it will automatically try the Open Food Facts API.
+                            Click on any search result in the list to see detailed nutrition facts in a pop-up window. Click the <strong>"Use" button</strong> next to a search result to automatically fill the calculator with its carbohydrate and serving information.
+                        </p>
+
+                        <h5 class="mt-4">4. Saved Items</h5>
+                        <p>
+                            To manage your frequently used food items, navigate to the <strong>"Saved Items" tab</strong>. You can search through your saved items using the <strong>search input field</strong>.
+                            Click the <strong>"Use" button</strong> next to a saved item to quickly load its details into the calculator.
+                            Click the <strong>trash can icon</strong> to remove a saved item (you'll be asked to confirm in a pop-up).
+                            Use the <strong>"Add Custom" button</strong> to manually add a new food item to your saved list by entering its label, serving size, and carbs per serving in the modal that appears.
+                        </p>
+
+                        <h4 class="mt-4">Technical Details: How Everything Works</h4>
+                        <p>
+                            This application is built using standard web technologies, designed for a smooth user experience directly in your browser.
+                        </p>
+                        <ul>
+                            <li>
+                                <strong>Carb Calculation Logic:</strong>
+                                When you input values into the "Carbohydrates per 100g" and "Weight of Food (g)" fields (which are HTML <code>&lt;input type="number"&gt;</code> elements) and click the "Calculate" button (an HTML <code>&lt;button&gt;</code> element), a JavaScript event listener attached to the button's <code>'click'</code> event is triggered. This listener retrieves the numerical values from the input fields using <code>document.getElementById('inputId').value</code> and converts them to floating-point numbers using <code>parseFloat()</code>. The core calculation, <code>(carbs / 100) * weight</code>, is then performed. The result is formatted to one decimal place using <code>.toFixed(1)</code> and displayed by updating the <code>textContent</code> property of the HTML element designated for total carbohydrates (<code>&lt;p id="totalCarbs"&gt;</code>).
+                            </li>
+                            <li>
+                                <strong>Saving and Loading Items (localStorage):</strong>
+                                Your saved food items and your dark mode preference are managed using the browser's <strong>localStorage API</strong>. This API provides a simple key-value store that persists data across browser sessions (even after closing and reopening the browser). When you save an item, its data (an object containing properties like `id`, `label`, `totalCarbs`, `carbsPer100g`) is converted into a JSON string using <code>JSON.stringify()</code> and stored under a specific key (e.g., <code>'savedItems'</code>). When the application loads (on <code>DOMContentLoaded</code>), it retrieves this JSON string using <code>localStorage.getItem()</code>, parses it back into a JavaScript array of objects using <code>JSON.parse()</code>, and then dynamically renders these items onto the page. The dark mode preference is similarly stored and retrieved.
+                                Additionally, the application now includes validation to prevent duplicate labels and ensure a label is provided when saving items. If a duplicate label is detected or no label is entered, an appropriate error message will be displayed to the user.
+                            </li>
+                            <li>
+                                <strong>Online Search and API Interaction (<code>fetch</code> API & Fallback):</strong>
+                                The online search functionality leverages the browser's native <strong><code>fetch</code> API</strong> for making asynchronous HTTP requests to external nutrition databases. 
+                                <ul>
+                                    <li>
+                                        <strong>Nutritionix API (Primary):</strong> The application first attempts to query the Nutritionix API. This involves two main types of requests:
+                                        <ol>
+                                            <li>An initial <code>GET</code> request to <code>/v2/search/instant</code> with the user's query. This returns a list of common and branded food items.</li>
+                                            <li>For each of the top 5 results from the instant search, a subsequent <code>POST</code> request is made to <code>/v2/natural/nutrients</code>. This request sends the food name in the request body and retrieves detailed nutrient information. Each <code>fetch</code> call returns a Promise, and <code>Promise.all()</code> is used to wait for all detail requests to complete concurrently.</li>
+                                        </ol>
+                                        Error handling is crucial here: if any Nutritionix API call fails (e.g., due to an HTTP status code indicating an error like 401 Unauthorized, 429 Too Many Requests, or any network issue), the <code>catch</code> block for the Nutritionix attempt is triggered.
+                                    </li>
+                                    <li>
+                                        <strong>Open Food Facts API (Fallback):</strong> Upon a Nutritionix failure, the application automatically attempts to query the Open Food Facts API. A <code>GET</code> request is made to their search endpoint (<code>/cgi/search.pl</code>) with the user's query. Open Food Facts typically provides data in a different structure than Nutritionix. Therefore, the JavaScript code includes logic to parse the Open Food Facts JSON response and map its nutrient fields (e.g., <code>nutriments.carbohydrates_100g</code>, <code>nutriments.energy_kcal_100g</code>) to a consistent internal object structure that mimics the Nutritionix format. This ensures that the rest of the application's rendering logic (for displaying search results and detailed nutrition facts) can work seamlessly regardless of which API provided the data.
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Dynamic User Interface (UI) Updates (DOM Manipulation):</strong>
+                                All visual changes and interactivity within the application are achieved through direct manipulation of the <strong>Document Object Model (DOM)</strong> using JavaScript. When a calculation is performed, search results are received, or a modal needs to be displayed, JavaScript functions create new HTML elements (e.g., <code>document.createElement('li')</code>), set their attributes and content (<code>element.textContent = '...'</code>, <code>element.setAttribute('...', '...')</code>), and append them to existing elements in the HTML structure (<code>parentElement.appendChild(newElement)</code>). Similarly, elements can be hidden (<code>element.style.display = 'none'</code>) or removed. This dynamic approach allows for a responsive and interactive user experience without requiring full page reloads.
+                            </li>
+                            <li>
+                                <strong>Animations:</strong>
+                                The application incorporates subtle animations to enhance the user experience. The <code>slideIn</code> animation is used for online search results, making them appear smoothly from the left. The <code>fade-in</code> animation is applied to the result card after a calculation, providing a gentle visual transition as the results become visible.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const forceOpenFoodFactsToggle = document.getElementById('forceOpenFoodFactsToggle');
+
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    if (darkModeToggle) {
+                        darkModeToggle.checked = true;
+                    }
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    if (darkModeToggle) {
+                        darkModeToggle.checked = false;
+                    }
+                }
+            };
+
+            // Load saved preferences
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                applyTheme('dark');
+            }
+
+            const forceOpenFoodFacts = localStorage.getItem('forceOpenFoodFacts');
+            if (forceOpenFoodFacts === 'true') {
+                forceOpenFoodFactsToggle.checked = true;
+            } else {
+                forceOpenFoodFactsToggle.checked = false;
+            }
+
+            // Event Listeners for toggles
+            darkModeToggle.addEventListener('click', () => {
+                const theme = darkModeToggle.checked ? 'dark' : 'light';
+                localStorage.setItem('theme', theme);
+                applyTheme(theme);
+            });
+
+            forceOpenFoodFactsToggle.addEventListener('click', () => {
+                localStorage.setItem('forceOpenFoodFacts', forceOpenFoodFactsToggle.checked);
+            });
+
+            // Synchronize theme across tabs/windows
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'theme') {
+                    applyTheme(event.newValue);
+                } else if (event.key === 'forceOpenFoodFacts') {
+                    forceOpenFoodFactsToggle.checked = (event.newValue === 'true');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

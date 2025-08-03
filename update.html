@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Updates</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+        .navbar-brand {
+            color: #212529;
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #2d2d2d; /* Dark background for body */
+            color: #f8f9fa; /* Light text for body */
+        }
+
+        body.dark-mode .navbar {
+            background-color: #2d2d2d !important; /* Darker navbar */
+            color: #f8f9fa !important; /* Light text for navbar */
+            box-shadow: 0 2px 4px rgba(0,0,0,.3);
+        }
+
+        body.dark-mode .navbar-brand {
+            color: #f8f9fa !important;
+        }
+
+        body.dark-mode .card {
+            background-color: #2d2d2d !important; /* Dark background for cards */
+            color: #f8f9fa; /* Light text for cards */
+            box-shadow: 0 4px 6px rgba(0,0,0,.3);
+            border: 1px solid rgba(255, 255, 255, 0.2); /* White border with transparency */
+        }
+
+        body.dark-mode .card-body {
+            background-color: #222222 !important; /* Darker inside for card body */
+            border-radius: 1rem; /* Maintain rounded corners for all sides */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a href="index.html" class="navbar-brand mb-0 h1"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="card">
+            <div class="card-body">
+                
+                <h3 class="mt-4">Version 1.2.1 Updates:</h3>
+                <ul>
+                    <li>
+                        <strong>Force Open Food Facts API Option:</strong>
+                        <p>A new setting has been added under the "Online Search" tab in the settings page. This allows users to force the application to use the Open Food Facts API for all online food searches, bypassing the default Nutritionix API. This provides more control over the data source for food information.</p>
+                    </li>
+                </ul>
+                <h3 class="mt-4">Version 1.2 Updates:</h3>
+                <ul>
+                    <li>
+                        <strong>Enhanced User Interface Animations:</strong>
+                        <p>I've significantly refined the visual feedback within the application by introducing subtle yet impactful animations. These additions are designed to make interactions feel more fluid, intuitive, and modern, improving the overall user experience without being distracting.</p>
+                        <ul>
+                            <li>
+                                <strong>Dynamic Online Search Result Display:</strong> When performing an online search for food items, individual results now gracefully slide into view from the left. This `slideIn` animation, implemented using CSS keyframes and JavaScript to control `animation-delay`, provides a visually appealing and organized presentation of search outcomes. Instead of an abrupt appearance, each search result item (`.online-search-result-item`) is introduced with a slight delay, creating a cascading effect that guides the user's eye and enhances readability. This makes browsing search results a more pleasant and less jarring experience.
+                            </li>
+                            <li>
+                                <strong>Smooth Carb Calculation Result Transition:</strong> Upon calculating the total carbohydrates, the result card (`#resultCard`) no longer just pops into existence. It now elegantly fades into view using a `fade-in` CSS transition. This subtle visual cue draws attention to the newly displayed information, making the calculation process feel more responsive and polished. The transition ensures that the user's focus is naturally directed to the outcome of their input, contributing to a more satisfying interaction.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Revamped and Organized Settings Page:</strong>
+                        <p>The settings interface (`settings.html`) has undergone a complete overhaul to provide a more structured, user-friendly, and scalable experience. Previously, settings might have been scattered or presented in a linear fashion, but now they are logically grouped within an intuitive accordion layout.</p>
+                        <p>This new design categorizes various settings into collapsible sections (e.g., "Visual," "About Carb Calculator"). Each section can be expanded or collapsed, allowing users to easily navigate and focus on the specific settings they wish to adjust without being overwhelmed by too many options at once. This not only improves the aesthetic appeal but also significantly enhances the usability and discoverability of different configuration options, making the application more accessible and manageable for all users.</p>
+                    </li>
+                    <li>
+                        <strong>Strategic Relocation of Dark Mode Toggle:</strong>
+                        <p>In line with the improved organization of the settings, the dark mode toggle switch has been thoughtfully moved from its previous location on the main application page (`index.html`) to the dedicated "Visual" section within the new settings page (`settings.html`).</p>
+                        <p>This relocation centralizes all visual preferences in one logical place, making it easier for users to find and manage display-related options. By consolidating such settings, we aim to reduce clutter on the main interface and provide a more consistent and intuitive user journey. Users can now access and change their preferred theme alongside other visual configurations, streamlining the customization process.</p>
+                    </li>
+                    <li>
+                        <strong>Dynamic User Interface Scaling for Enhanced Responsiveness:</strong>
+                        <p>A significant improvement in this version is the implementation of dynamic UI scaling, ensuring that the Carb Calculator application provides an optimal viewing and interaction experience across a wide array of devices and screen sizes. This means the user interface is no longer static but intelligently adapts its layout, element sizes, and content presentation based on the available screen real estate.</p>
+                        <p>Whether you are accessing the application on a compact smartphone, a mid-sized tablet, or a large desktop monitor, the UI will automatically adjust to maintain readability, usability, and aesthetic integrity. This responsiveness is achieved through a combination of flexible CSS layouts (like Flexbox and Grid), relative units (percentages, `vw`, `vh`), and media queries, which allow the application to apply different styles based on screen characteristics. This ensures that all interactive elements remain easily tappable or clickable, text is legible, and the overall layout remains coherent, providing a seamless and consistent experience regardless of the device or orientation.</p>
+                    </li>
+                </ul>
+                <!-- Future updates will be listed here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            };
+
+            // Apply saved theme on load
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                applyTheme('dark');
+            }
+
+            // Synchronize theme across tabs/windows
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'theme') {
+                    applyTheme(event.newValue);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

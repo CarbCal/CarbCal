@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carb Calculator</title>
+    <link rel="icon" type="image/png" href="CarbCal.png">
+    <!-- Apple Touch Icon for Home Screen -->
+    <link rel="apple-touch-icon" href="CarbCal.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="CarbCal">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: url('Bread.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: -1;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        body.dark-mode .btn {
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for all buttons in dark mode */
+        }
+
+        body.dark-mode .btn-primary {
+            background-color: #0056b3; /* Darker blue for dark mode */
+            border: 1px solid #004085; /* Subtle border */
+        }
+
+        body.dark-mode .btn-primary:hover {
+            background-color: #004085;
+        }
+
+        body.dark-mode .btn-info {
+            background-color: #17a2b8; /* Darker cyan for dark mode */
+            border: 1px solid #117a8b;
+        }
+
+        body.dark-mode .btn-info:hover {
+            background-color: #117a8b;
+        }
+
+        body.dark-mode .btn-success {
+            background-color: #28a745; /* Green */
+            border: 1px solid #1e7e34;
+        }
+
+        body.dark-mode .btn-success:hover {
+            background-color: #1e7e34;
+        }
+
+        body.dark-mode .btn-outline-success {
+            color: #28a745;
+            border-color: #28a745;
+        }
+
+        body.dark-mode .btn-outline-success:hover {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        body.dark-mode .btn-outline-primary {
+            color: #007bff;
+            border-color: #007bff;
+        }
+
+        body.dark-mode .btn-outline-primary:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        body.dark-mode .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        body.dark-mode .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        body.dark-mode .btn-outline-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        body.dark-mode .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        body.dark-mode .btn-secondary {
+            background-color: #6c757d;
+            border: 1px solid #545b62;
+        }
+
+        body.dark-mode .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .list-group-item {
+            border-radius: .5rem;
+            margin-bottom: .5rem;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #2d2d2d; /* Dark background for body */
+        }
+
+        body.dark-mode::before {
+            background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+        }
+
+        body.dark-mode .navbar {
+            background-color: #2d2d2d !important; /* Darker navbar */
+            color: #f8f9fa !important; /* Light text for navbar */
+            box-shadow: 0 2px 4px rgba(0,0,0,.3);
+        }
+
+        body.dark-mode .navbar-brand {
+            color: #f8f9fa !important;
+        }
+
+        body.dark-mode .navbar-text {
+            color: #f8f9fa !important;
+        }
+
+        body.dark-mode .card-body {
+            background-color: #222222 !important; /* Darker inside for card body */
+            border-radius: 1rem; /* Maintain rounded corners for all sides */
+        }
+
+        body.dark-mode .card-header {
+            background-color: #222222 !important; /* Even darker inside for card header */
+            border-bottom: 1px solid rgb(60, 60, 60); /* Match card border */
+            border-top-left-radius: 1rem; /* Match parent card */
+            border-top-right-radius: 1rem; /* Match parent card */
+        }
+
+        body.dark-mode .form-label {
+            color: #f8f9fa;
+        }
+
+        body.dark-mode .form-control {
+            background-color: #222222;
+            color: #f8f9fa;
+            border-color: #555;
+        }
+
+        body.dark-mode .form-control:focus {
+            background-color: #222222; /* Keep background dark on focus */
+            color: #f8f9fa; /* Keep text light on focus */
+            border-color: #777; /* Adjust border color on focus */
+            box-shadow: 0 0 0 0.25rem rgba(192, 192, 192, 0.25); /* Adjust shadow for dark mode focus */
+        }
+
+        body.dark-mode .form-control::placeholder {
+            color: #bbb;
+        }
+
+        body.dark-mode .list-group-item {
+            background-color: #222222 !important; /* Darker for list items */
+            color: #f8f9fa;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* White border with transparency */
+        }
+
+        body.dark-mode .list-group-item small {
+            color: #bbb !important;
+        }
+
+        body.dark-mode .list-group-item.text-muted {
+            color: #f8f9fa !important; /* Ensure muted text is white in dark mode */
+        }
+
+        .modal-content {
+            background-color: rgb(255, 255, 255);
+            color: #212529; /* Default text color for light mode */
+        }
+
+        body.dark-mode .modal-content {
+            background-color: #222222 !important; /* Dark background for modal content */
+            color: #f8f9fa;
+        }
+
+        body.dark-mode .card {
+            background-color: #2d2d2d !important; /* Dark background for cards */
+            color: #f8f9fa; /* Light text for cards */
+            box-shadow: 0 4px 6px rgba(0,0,0,.3);
+            border: 1px solid rgba(255, 255, 255, 0.2); /* White border with transparency */
+        }
+
+        body.dark-mode .modal-header {
+            border-bottom-color: #444;
+        }
+
+        body.dark-mode .modal-footer {
+            border-top-color: #444;
+        }
+
+        body.dark-mode .btn-close {
+            filter: invert(1); /* Make close button visible on dark background */
+        }
+
+        body.dark-mode .nav-tabs .nav-link {
+            color: #bbb;
+        }
+
+        body.dark-mode .nav-tabs .nav-link.active {
+            background-color: rgb(60, 60, 60) !important; /* Light grey for active tab */
+            color: #f8f9fa !important;
+            border-color: #444 !important;
+            border-top-left-radius: 1rem; /* Match parent card */
+            border-top-right-radius: 1rem; /* Match parent card */
+        }
+
+        body.dark-mode .tab-content {
+            background-color: #222222; /* Darker background for tab content to match list items */
+            border-radius: 0 0 1rem 1rem; /* Match card border-radius */
+            padding: 1rem;
+        }
+
+        body.dark-mode .tab-content {
+            background-color: #222222; /* Darker background for tab content to match list items */
+            border-radius: 0 0 1rem 1rem; /* Match card border-radius */
+            padding: 1rem;
+        }
+
+        .info-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050; /* Ensure it's above other content */
+            border-radius: .5rem; /* Match card border-radius */
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-200%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        #result-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+
+        #resultCard {
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        #resultCard.fade-in {
+            opacity: 1;
+        }
+
+        .online-search-result-item {
+            animation: slideIn 0.5s ease-out both;
+        }
+
+        .search-card-animation {
+            animation: slideDown 0.5s ease-out both;
+        }
+
+        #search-panel, #saved-panel {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #myTabContent {
+            transition: height 0.3s ease-in-out;
+        }
+
+        #nutritionFactsModal .list-group {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1"><i class="bi bi-calculator"></i> Carb Calculator</span>
+            <div class="ms-auto border rounded px-2 py-1 version-box">
+                <a href="update.html" class="navbar-text m-34" style="text-decoration: none; color: inherit;">Version 1.2.1</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="carbsPer100g" class="form-label">Carbohydrates per 100g</label>
+                            <input type="text" inputmode="decimal" class="form-control" id="carbsPer100g" placeholder="e.g., 50">
+                        </div>
+                        <div class="mb-3">
+                            <label for="foodWeight" class="form-label">Weight of Food (g)</label>
+                            <input type="text" inputmode="decimal" class="form-control" id="foodWeight" placeholder="e.g., 150">
+                        </div>
+                        <button id="calculateBtn" class="btn btn-primary w-100"><i class="bi bi-arrow-repeat"></i> Calculate</button>
+                    </div>
+                </div>
+
+                <div id="result-container">
+                    <div id="resultCard" class="card text-center mt-4">
+                        <div class="card-body">
+                            <button type="button" class="btn-close" aria-label="Close" style="position: absolute; top: 10px; right: 10px;" id="closeResultCard"></button>
+                            <h5 class="card-title">Total Carbohydrates</h5>
+                            <p id="totalCarbs" class="display-4 fw-bold"></p>
+                            <div class="input-group">
+                                <input type="text" id="label" class="form-control" placeholder="Label your item">
+                                <button id="addToListBtn" class="btn btn-success" type="button"><i class="bi bi-plus-lg"></i> Add</button>
+                            </div>
+                            <div id="labelError" class="text-danger mt-1" style="display: none;">Label already exists.</div>
+                            <div id="noLabelError" class="text-danger mt-1" style="display: none;">Please enter a label.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="search-card" class="card mt-4">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="search-tab" data-bs-toggle="tab" data-bs-target="#search-panel" type="button" role="tab" aria-controls="search-panel" aria-selected="true">
+                                    <i class="bi bi-search"></i> Online Search
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="saved-tab" data-bs-toggle="tab" data-bs-target="#saved-panel" type="button" role="tab" aria-controls="saved-panel" aria-selected="false">
+                                    <i class="bi bi-bookmark-star"></i> Saved Items
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="search-panel" role="tabpanel" aria-labelledby="search-tab">
+                            <div class="input-group">
+                                <input type="text" id="onlineSearchInput" class="form-control" placeholder="Search for a food...">
+                                <button id="onlineSearchBtn" class="btn btn-info" type="button">Search</button>
+                            </div>
+                            <div class="alert alert-info mt-2" role="alert" id="apiStatusMessage" style="display: none;"></div>
+                            <ul id="onlineSearchResults" class="list-group mt-3">
+                            </ul>
+                        </div>
+                        <div class="tab-pane fade" id="saved-panel" role="tabpanel" aria-labelledby="saved-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h3 class="h4 mb-0">Saved Items</h3>
+                                <button id="addCustomItemBtn" class="btn btn-outline-primary"><i class="bi bi-plus-circle-fill"></i> Add Custom</button>
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Search saved items...">
+                            </div>
+                            <ul id="savedItemsList" class="list-group">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mt-4 mt-lg-0">
+                
+            </div>
+        </div>
+    </div>
+
+    <a href="settings.html" class="btn btn-info btn-lg info-fab"><i class="bi bi-gear-fill"></i></a>
+
+    <div class="modal fade" id="confirmRemoveModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Remove Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to remove this item?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="confirmRemoveBtn" class="btn btn-danger">Remove</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addCustomItemModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Custom Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="customLabel" class="form-label">Label</label>
+                        <input type="text" class="form-control" id="customLabel" placeholder="e.g., My Cereal">
+                        <div id="customLabelError" class="text-danger mt-1" style="display: none;">Label already exists.</div>
+                        <div id="customNoLabelError" class="text-danger mt-1" style="display: none;">Please enter a label.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="servingSize" class="form-label">Serving Size (g)</label>
+                        <input type="text" inputmode="decimal" class="form-control" id="servingSize" placeholder="e.g., 45">
+                    </div>
+                    <div class="mb-3">
+                        <label for="carbsInServing" class="form-label">Carbs in Serving (g)</label>
+                        <input type="text" inputmode="decimal" class="form-control" id="carbsInServing" placeholder="e.g., 25">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="saveCustomItemBtn" class="btn btn-primary">Save Item</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="nutritionFactsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nutritionFactsModalTitle">Nutrition Facts</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="nutritionFactsModalBody">
+                    <!-- Nutrition facts will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const carbsPer100gInput = document.getElementById('carbsPer100g');
+            const foodWeightInput = document.getElementById('foodWeight');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resultCard = document.getElementById('resultCard');
+            const closeResultCard = document.getElementById('closeResultCard');
+            const totalCarbsEl = document.getElementById('totalCarbs');
+            const labelInput = document.getElementById('label');
+            const addToListBtn = document.getElementById('addToListBtn');
+            const savedItemsList = document.getElementById('savedItemsList');
+            const confirmRemoveModal = new bootstrap.Modal(document.getElementById('confirmRemoveModal'));
+            const confirmRemoveBtn = document.getElementById('confirmRemoveBtn');
+            const addCustomItemBtn = document.getElementById('addCustomItemBtn');
+            const addCustomItemModal = new bootstrap.Modal(document.getElementById('addCustomItemModal'));
+            const saveCustomItemBtn = document.getElementById('saveCustomItemBtn');
+            const customLabelInput = document.getElementById('customLabel');
+            const servingSizeInput = document.getElementById('servingSize');
+            const carbsInServingInput = document.getElementById('carbsInServing');
+            const searchInput = document.getElementById('searchInput');
+            const onlineSearchInput = document.getElementById('onlineSearchInput');
+            const onlineSearchBtn = document.getElementById('onlineSearchBtn');
+            const onlineSearchResults = document.getElementById('onlineSearchResults');
+
+            // Apply saved theme on load
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            };
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                applyTheme('dark');
+            }
+
+            // Synchronize theme across tabs/windows
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'theme') {
+                    applyTheme(event.newValue);
+                }
+            });
+            
+
+            let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+
+            // Data migration for older items that may not have a servingSize property
+            let needsSave = false;
+            savedItems.forEach(item => {
+                if (item.servingSize === undefined && item.totalCarbs !== undefined && item.carbsPer100g !== undefined) {
+                    if (item.carbsPer100g > 0) {
+                        item.servingSize = (item.totalCarbs * 100) / item.carbsPer100g;
+                    } else {
+                        item.servingSize = 0;
+                    }
+                    needsSave = true;
+                }
+            });
+
+            if (needsSave) {
+                localStorage.setItem('savedItems', JSON.stringify(savedItems));
+            }
+
+            let itemToRemove = null;
+
+            const renderSavedItems = () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filteredItems = savedItems
+                    .filter(item => item.label.toLowerCase().includes(searchTerm))
+                    .sort((a, b) => a.label.localeCompare(b.label));
+
+                savedItemsList.innerHTML = '';
+                if (filteredItems.length === 0) {
+                    if (savedItems.length === 0) {
+                        savedItemsList.innerHTML = '<li class="list-group-item text-center">You have no saved items.</li>';
+                    } else {
+                        savedItemsList.innerHTML = '<li class="list-group-item text-center">No items match your search.</li>';
+                    }
+                    return;
+                }
+
+                filteredItems.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
+                    li.style.animationDelay = `${index * 0.1}s`;
+                    li.innerHTML = `
+                        <div>
+                            <strong class="d-block">${item.label}</strong>
+                            <small class="text-muted">Serving: ${item.servingSize.toFixed(1)}g | Carbs: ${item.totalCarbs.toFixed(1)}g</small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-secondary use-btn"><i class="bi bi-arrow-up-right-square"></i> Use</button>
+                            <button class="btn btn-sm btn-outline-danger remove-btn"><i class="bi bi-trash"></i></button>
+                        </div>
+                    `;
+                    li.querySelector('.use-btn').addEventListener('click', () => {
+                        carbsPer100gInput.value = item.carbsPer100g.toFixed(2);
+                        foodWeightInput.value = item.servingSize.toFixed(1);
+                        labelInput.value = item.label;
+                        const resultContainer = document.getElementById('result-container');
+                        resultContainer.style.maxHeight = '0px';
+                        window.scrollTo(0, 0);
+                    });
+                    li.querySelector('.remove-btn').addEventListener('click', () => {
+                        itemToRemove = item;
+                        confirmRemoveModal.show();
+                    });
+                    savedItemsList.appendChild(li);
+                });
+            };
+
+            searchInput.addEventListener('input', renderSavedItems);
+
+            document.getElementById('saved-tab').addEventListener('shown.bs.tab', renderSavedItems);
+
+            const saveItems = () => {
+                localStorage.setItem('savedItems', JSON.stringify(savedItems));
+            };
+
+            calculateBtn.addEventListener('click', () => {
+                const carbs = parseFloat(carbsPer100gInput.value) || 0;
+                const weight = parseFloat(foodWeightInput.value) || 0;
+                const total = (carbs / 100) * weight;
+                totalCarbsEl.textContent = `${total.toFixed(1)} g`;
+
+                const resultContainer = document.getElementById('result-container');
+                const resultCard = document.getElementById('resultCard');
+                resultContainer.style.maxHeight = '500px'; // Set a large enough max-height
+                resultCard.classList.add('fade-in');
+            });
+
+            closeResultCard.addEventListener('click', () => {
+                const resultContainer = document.getElementById('result-container');
+                const resultCard = document.getElementById('resultCard');
+                resultCard.classList.remove('fade-in');
+                resultContainer.style.maxHeight = '0px';
+            });
+
+            addToListBtn.addEventListener('click', () => {
+                const carbs = parseFloat(carbsPer100gInput.value) || 0;
+                const weight = parseFloat(foodWeightInput.value) || 0;
+                const totalCarbs = (carbs / 100) * weight;
+                const label = labelInput.value.trim(); // Get trimmed label
+                const labelError = document.getElementById('labelError');
+                const noLabelError = document.getElementById('noLabelError');
+
+                // Reset error messages
+                labelError.style.display = 'none';
+                noLabelError.style.display = 'none';
+
+                if (label === '') {
+                    noLabelError.style.display = 'block';
+                    return;
+                }
+
+                if (savedItems.some(item => item.label.toLowerCase() === label.toLowerCase())) {
+                    labelError.style.display = 'block';
+                    return;
+                }
+
+                if (totalCarbs > 0) {
+                    const newItem = {
+                        id: Date.now(),
+                        label,
+                        totalCarbs,
+                        carbsPer100g: carbs,
+                        servingSize: weight
+                    };
+                    savedItems.unshift(newItem);
+                    saveItems();
+                    renderSavedItems();
+                    labelInput.value = '';
+                    labelError.style.display = 'none';
+                    noLabelError.style.display = 'none';
+                }
+            });
+
+            confirmRemoveBtn.addEventListener('click', () => {
+                if (itemToRemove) {
+                    savedItems = savedItems.filter(item => item.id !== itemToRemove.id);
+                    saveItems();
+                    renderSavedItems();
+                    itemToRemove = null;
+                    confirmRemoveModal.hide();
+                }
+            });
+
+            addCustomItemBtn.addEventListener('click', () => {
+                customLabelInput.value = '';
+                servingSizeInput.value = '';
+                carbsInServingInput.value = '';
+                document.getElementById('customLabelError').style.display = 'none';
+                document.getElementById('customNoLabelError').style.display = 'none';
+                addCustomItemModal.show();
+            });
+
+            saveCustomItemBtn.addEventListener('click', () => {
+                const label = customLabelInput.value.trim();
+                const servingSize = parseFloat(servingSizeInput.value) || 0;
+                const carbsInServing = parseFloat(carbsInServingInput.value) || 0;
+                const customLabelError = document.getElementById('customLabelError');
+                const customNoLabelError = document.getElementById('customNoLabelError');
+
+                // Reset error messages
+                customLabelError.style.display = 'none';
+                customNoLabelError.style.display = 'none';
+
+                if (label === '') {
+                    customNoLabelError.style.display = 'block';
+                    return;
+                }
+
+                if (savedItems.some(item => item.label.toLowerCase() === label.toLowerCase())) {
+                    customLabelError.style.display = 'block';
+                    return;
+                }
+
+                if (label && servingSize > 0 && carbsInServing > 0) {
+                    const carbsPer100g = (carbsInServing / servingSize) * 100;
+                    const newItem = {
+                        id: Date.now(),
+                        label,
+                        totalCarbs: carbsInServing,
+                        carbsPer100g,
+                        servingSize: servingSize
+                    };
+                    savedItems.unshift(newItem);
+                    saveItems();
+                    renderSavedItems();
+                    addCustomItemModal.hide();
+                    customLabelInput.value = '';
+                    servingSizeInput.value = '';
+                    carbsInServingInput.value = '';
+                    customLabelError.style.display = 'none';
+                    customNoLabelError.style.display = 'none';
+                }
+            });
+
+
+            // --- Online Search Implementation (Nutritionix) ---
+            const appId = 'a43df76e';
+            const appKey = 'ace70e58cd3b3f55ca033b2078f9c2d5';
+
+            // Open Food Facts API Base URL
+            const openFoodFactsBaseUrl = 'https://world.openfoodfacts.org/cgi/search.pl';
+
+            const updateApiStatusMessage = () => {
+                const forceOpenFoodFacts = localStorage.getItem('forceOpenFoodFacts') === 'true';
+                const apiStatusMessage = document.getElementById('apiStatusMessage');
+                if (forceOpenFoodFacts) {
+                    apiStatusMessage.textContent = 'Force Open Food Facts API is active.';
+                    apiStatusMessage.style.display = 'block';
+                } else {
+                    apiStatusMessage.style.display = 'none';
+                }
+            };
+
+            const handleOnlineSearch = async () => {
+                console.log('Force Open Food Facts API setting:', localStorage.getItem('forceOpenFoodFacts'));
+                const query = onlineSearchInput.value.trim();
+                const forceOpenFoodFacts = localStorage.getItem('forceOpenFoodFacts') === 'true';
+
+                if (query.toLowerCase() === 'test') {
+                    onlineSearchResults.innerHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
+                        li.style.animationDelay = `${(i - 1) * 0.1}s`;
+                        const foodData = {
+                            food_name: `Test Item ${i}`,
+                            serving_weight_grams: 158.0 + (i * 5),
+                            nf_calories: 205.4 + (i * 10),
+                            nf_total_fat: 0.4 + (i * 0.1),
+                            nf_saturated_fat: 0.1 + (i * 0.05),
+                            nf_cholesterol: 0.0,
+                            nf_sodium: 1.6 + (i * 0.2),
+                            nf_total_carbohydrate: 44.5 + (i * 2),
+                            nf_dietary_fiber: 0.6 + (i * 0.1),
+                            nf_sugars: 0.1 + (i * 0.1),
+                            nf_protein: 4.3 + (i * 0.5),
+                            nf_potassium: 55.3 + (i * 3000),
+                            nf_p: 0 + (i*1),
+                            photo: { thumb: 'CarbCal.png' }
+                        };
+                        li.setAttribute('data-food', JSON.stringify(foodData));
+                        li.innerHTML = `
+                            <div>
+                                <strong class="d-block">${foodData.food_name}</strong>
+                                <small class="text-muted">
+                                    Serving: ${foodData.serving_weight_grams.toFixed(1)}g | Carbs: ${foodData.nf_total_carbohydrate.toFixed(1)}g
+                                </small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-success use-online-item-btn"
+                                data-carbs-per-100g="${((foodData.nf_total_carbohydrate / foodData.serving_weight_grams) * 100).toFixed(2)}"
+                                data-serving-grams="${foodData.serving_weight_grams.toFixed(1)}"
+                                data-name="${foodData.food_name}">
+                                <i class="bi bi-arrow-up-right-square"></i> Use
+                            </button>
+                        `;
+                        onlineSearchResults.appendChild(li);
+                    }
+                    return;
+                }
+                if (query.length < 2) {
+                    onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Please enter at least 2 characters.</li>';
+                    return;
+                }
+
+                onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Searching...</li>';
+
+                let foodData = null;
+
+                if (!forceOpenFoodFacts) {
+                    // --- Try Nutritionix API first ---
+                    try {
+                        if (!appId || !appKey || appId.includes('YOUR') || appKey.includes('YOUR')) {
+                            throw new Error('Nutritionix API credentials are not configured.');
+                        }
+
+                        // Step 1: Get the initial list of foods from Nutritionix
+                        const searchResponse = await fetch(`https://trackapi.nutritionix.com/v2/search/instant?query=${encodeURIComponent(query)}`, {
+                            headers: {
+                                'x-app-id': appId,
+                                'x-app-key': appKey
+                            }
+                        });
+
+                        if (!searchResponse.ok) {
+                            throw new Error(`Nutritionix API Search Error: ${searchResponse.status} - ${searchResponse.statusText}`);
+                        }
+                        
+                        const searchData = await searchResponse.json();
+                        const results = [...(searchData.common || []), ...(searchData.branded || [])];
+
+                        if (results.length === 0) {
+                            throw new Error('No results from Nutritionix. Falling back to Open Food Facts.');
+                        }
+
+                        // Step 2: Fetch details for the top 5 results from Nutritionix
+                        const detailPromises = results.slice(0, 5).map(food => {
+                            return fetch(`https://trackapi.nutritionix.com/v2/natural/nutrients`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'x-app-id': appId,
+                                    'x-app-key': appKey
+                                },
+                                body: JSON.stringify({ query: food.food_name })
+                            }).then(res => {
+                                if (!res.ok) {
+                                    return res.text().then(text => { throw new Error(`Nutritionix detail API error: ${res.status} - ${text}`); });
+                                }
+                                return res.json();
+                            });
+                        });
+
+                        const detailResults = await Promise.all(detailPromises);
+                        foodData = detailResults.map(detail => detail.foods && detail.foods.length > 0 ? detail.foods[0] : null).filter(Boolean);
+
+                    } catch (nutritionixError) {
+                        console.warn('Nutritionix API failed:', nutritionixError.message, 'Attempting Open Food Facts...');
+                        onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Nutritionix failed. Trying Open Food Facts...</li>';
+                    }
+                }
+
+                // --- Fallback to Open Food Facts API (or if forced) ---
+                if (forceOpenFoodFacts || !foodData || foodData.length === 0) {
+                    try {
+                        const offSearchUrl = `${openFoodFactsBaseUrl}?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`;
+                        const offResponse = await fetch(offSearchUrl);
+
+                        if (!offResponse.ok) {
+                            throw new Error(`Open Food Facts API Search Error: ${offResponse.statusText}`);
+                        }
+
+                        const offData = await offResponse.json();
+                        const products = offData.products || [];
+
+                        if (products.length === 0) {
+                            throw new Error('No results found from Open Food Facts.');
+                        }
+
+                        foodData = products.slice(0, 5).map(product => {
+                            // Map Open Food Facts data to a Nutritionix-like structure
+                            const servingSize = product.serving_size ? parseFloat(product.serving_size.replace(/[^0-9.]/g, '')) : 0;
+                            const carbs100g = product.nutriments && product.nutriments.carbohydrates_100g ? parseFloat(product.nutriments.carbohydrates_100g) : 0;
+                            const totalCarbs = (servingSize > 0 && carbs100g > 0) ? (carbs100g / 100) * servingSize : 0;
+
+                            return {
+                                food_name: product.product_name || product.generic_name || 'N/A',
+                                serving_weight_grams: servingSize,
+                                nf_total_carbohydrate: totalCarbs,
+                                nf_calories: product.nutriments && product.nutriments.energy_kcal_100g ? parseFloat(product.nutriments.energy_kcal_100g) : 0,
+                                nf_total_fat: product.nutriments && product.nutriments.fat_100g ? parseFloat(product.nutriments.fat_100g) : 0,
+                                nf_saturated_fat: product.nutriments && product.nutriments['saturated-fat_100g'] ? parseFloat(product.nutriments['saturated-fat_100g']) : 0,
+                                nf_cholesterol: product.nutriments && product.nutriments.cholesterol_100g ? parseFloat(product.nutriments.cholesterol_100g) : 0,
+                                nf_sodium: product.nutriments && product.nutriments.sodium_100g ? parseFloat(product.nutriments.sodium_100g) * 1000 : 0, // Convert g to mg
+                                nf_dietary_fiber: product.nutriments && product.nutriments.fiber_100g ? parseFloat(product.nutriments.fiber_100g) : 0,
+                                nf_sugars: product.nutriments && product.nutriments.sugars_100g ? parseFloat(product.nutriments.sugars_100g) : 0,
+                                nf_protein: product.nutriments && product.nutriments.proteins_100g ? parseFloat(product.nutriments.proteins_100g) : 0,
+                                nf_potassium: product.nutriments && product.nutriments.potassium_100g ? parseFloat(product.nutriments.potassium_100g) * 1000 : 0, // Convert g to mg
+                                nf_p: 0, // Open Food Facts doesn't consistently provide phosphorus
+                                photo: { thumb: product.image_small_url || product.image_url || null } // Use available image URLs
+                            };
+                        });
+
+                    } catch (offError) {
+                        console.error('Open Food Facts API failed:', offError);
+                        onlineSearchResults.innerHTML = '<li class="list-group-item text-danger">Search failed for both APIs. Please try again.</li>';
+                        return;
+                    }
+                }
+
+                // --- Render Results (common for both APIs) ---
+                onlineSearchResults.innerHTML = ''; // Clear the list before adding new results
+
+                if (foodData && foodData.length > 0) {
+                    foodData.forEach((food, index) => {
+                        const foodName = food.food_name || 'N/A';
+                        const servingGrams = food.serving_weight_grams || 0;
+                        const totalCarbs = food.nf_total_carbohydrate || 0;
+                        const carbsPer100g = servingGrams > 0 ? (totalCarbs / servingGrams) * 100 : 0;
+
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
+                        li.style.animationDelay = `${index * 0.1}s`;
+                        li.setAttribute('data-food', JSON.stringify(food));
+                        li.innerHTML = `
+                            <div>
+                                <strong class="d-block">${foodName}</strong>
+                                <small class="text-muted">
+                                    Serving: ${servingGrams.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g
+                                </small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-success use-online-item-btn"
+                                data-carbs-per-100g="${carbsPer100g.toFixed(2)}"
+                                data-serving-grams="${servingGrams.toFixed(1)}"
+                                data-name="${foodName}">
+                                <i class="bi bi-arrow-up-right-square"></i> Use
+                            </button>
+                        `;
+                        onlineSearchResults.appendChild(li);
+                    });
+                } else {
+                    onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results found.</li>';
+                }
+                setTimeout(adjustTabContentHeight, 50);
+            };
+
+            // --- Event Listeners for Online Search ---
+            onlineSearchBtn.addEventListener('click', handleOnlineSearch);
+            onlineSearchInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') handleOnlineSearch();
+            });
+
+            const nutritionFactsModal = new bootstrap.Modal(document.getElementById('nutritionFactsModal'));
+            const nutritionFactsModalTitle = document.getElementById('nutritionFactsModalTitle');
+            const nutritionFactsModalBody = document.getElementById('nutritionFactsModalBody');
+
+            const searchTab = document.getElementById('search-tab');
+            const savedTab = document.getElementById('saved-tab');
+            const tabContent = document.getElementById('myTabContent');
+            const searchPanel = document.getElementById('search-panel');
+            const savedPanel = document.getElementById('saved-panel');
+
+            const adjustTabContentHeight = () => {
+                const activePane = tabContent.querySelector('.tab-pane.active');
+                if (activePane) {
+                    tabContent.style.height = (activePane.scrollHeight + 20) + 'px'; // Add 40px for extra space
+                }
+            };
+
+            searchTab.addEventListener('shown.bs.tab', adjustTabContentHeight);
+            savedTab.addEventListener('shown.bs.tab', adjustTabContentHeight);
+
+            // Adjust height on initial load and resize
+            window.addEventListener('load', adjustTabContentHeight);
+            window.addEventListener('resize', adjustTabContentHeight);
+
+            const observer = new MutationObserver(() => {
+                const activePane = tabContent.querySelector('.tab-pane.active');
+                if (activePane) {
+                    adjustTabContentHeight();
+                }
+            });
+            observer.observe(onlineSearchResults, { childList: true, subtree: true });
+            observer.observe(savedItemsList, { childList: true, subtree: true });
+
+            onlineSearchResults.addEventListener('click', (event) => {
+                const button = event.target.closest('.use-online-item-btn');
+                const listItem = event.target.closest('.online-search-result-item');
+
+                if (button) {
+                    const carbs = button.getAttribute('data-carbs-per-100g');
+                    const serving = button.getAttribute('data-serving-grams');
+                    const name = button.getAttribute('data-name');
+
+                    if (carbs) {
+                        carbsPer100gInput.value = carbs;
+                        foodWeightInput.value = serving;
+                        labelInput.value = name;
+
+                        calculateBtn.click();
+                        window.scrollTo(0, 0);
+                    } else {
+                        alert('Carbohydrate data not available for this item.');
+                    }
+                } else if (listItem) {
+                    const foodData = JSON.parse(listItem.getAttribute('data-food'));
+                    nutritionFactsModalTitle.textContent = foodData.food_name || 'Nutrition Facts';
+
+                    let detailsHtml = '';
+                    if (foodData.photo && foodData.photo.thumb) {
+                        detailsHtml += `<div class="text-center mb-3"><img src="${foodData.photo.thumb}" class="img-fluid rounded" alt="${foodData.food_name}" style="max-height: 200px;"></div>`;
+                    }
+                    detailsHtml += '<ul class="list-group">';
+                    const nutrients = [
+                        { label: 'Serving Size', value: foodData.serving_weight_grams, unit: 'g' },
+                        { label: 'Calories', value: foodData.nf_calories, unit: 'kcal' },
+                        { label: 'Total Fat', value: foodData.nf_total_fat, unit: 'g' },
+                        { label: 'Saturated Fat', value: foodData.nf_saturated_fat, unit: 'g' },
+                        { label: 'Cholesterol', value: foodData.nf_cholesterol, unit: 'mg' },
+                        { label: 'Sodium', value: foodData.nf_sodium, unit: 'mg' },
+                        { label: 'Total Carbohydrate', value: foodData.nf_total_carbohydrate, unit: 'g' },
+                        { label: 'Dietary Fiber', value: foodData.nf_dietary_fiber, unit: 'g' },
+                        { label: 'Sugars', value: foodData.nf_sugars, unit: 'g' },
+                        { label: 'Protein', value: foodData.nf_protein, unit: 'g' },
+                        { label: 'Potassium', value: foodData.nf_potassium, unit: 'mg' },
+                        { label: 'Phosphorus', value: foodData.nf_p, unit: 'mg' }
+                    ];
+
+                    nutrients.forEach(nutrient => {
+                        if (nutrient.value !== null && nutrient.value !== undefined) {
+                            detailsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div class="fw-bold">${nutrient.label}</div>
+                                                <strong>${nutrient.value.toFixed(1)}${nutrient.unit}</strong>
+                                            </li>`;
+                        }
+                    });
+
+                    detailsHtml += '</ul>';
+                    nutritionFactsModalBody.innerHTML = detailsHtml;
+                    nutritionFactsModal.show();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
