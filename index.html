@@ -722,8 +722,9 @@
 
 
             // --- Online Search Implementation (Nutritionix) ---
-            const appId = 'YOUR_APP_ID';
-            const appKey = 'YOUR_APP_KEY';
+            const nutritionixAppId = localStorage.getItem('nutritionixAppId') || 'YOUR_APP_ID';
+            const nutritionixAppKey = localStorage.getItem('nutritionixAppKey') || 'YOUR_APP_KEY';
+            
 
             // Open Food Facts API Base URL
             const openFoodFactsBaseUrl = 'https://world.openfoodfacts.org/cgi/search.pl';
@@ -797,15 +798,15 @@
                 if (!forceOpenFoodFacts) {
                     // --- Try Nutritionix API first ---
                     try {
-                        if (!appId || !appKey || appId.includes('YOUR') || appKey.includes('YOUR')) {
+                        if (!nutritionixAppId || !nutritionixAppKey || nutritionixAppId.includes('YOUR') || nutritionixAppKey.includes('YOUR')) {
                             throw new Error('Nutritionix API credentials are not configured.');
                         }
 
                         // Step 1: Get the initial list of foods from Nutritionix
                         const searchResponse = await fetch(`https://trackapi.nutritionix.com/v2/search/instant?query=${encodeURIComponent(query)}`, {
                             headers: {
-                                'x-app-id': appId,
-                                'x-app-key': appKey
+                                'x-app-id': nutritionixAppId,
+                                'x-app-key': nutritionixAppKey
                             }
                         });
 
@@ -826,8 +827,8 @@
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'x-app-id': appId,
-                                    'x-app-key': appKey
+                                    'x-app-id': nutritionixAppId,
+                                    'x-app-key': nutritionixAppKey
                                 },
                                 body: JSON.stringify({ query: food.food_name })
                             }).then(res => {

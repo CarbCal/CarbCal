@@ -112,9 +112,36 @@
             color: #e0e0e0;
         }
 
+        body.dark-mode .form-control {
+            background-color: #222222;
+            color: #f8f9fa;
+            border-color: #555;
+        }
+
+        body.dark-mode .form-control:focus {
+            background-color: #222222; /* Keep background dark on focus */
+            color: #f8f9fa; /* Keep text light on focus */
+            border-color: #777; /* Adjust border color on focus */
+            box-shadow: 0 0 0 0.25rem rgba(192, 192, 192, 0.25); /* Adjust shadow for dark mode focus */
+        }
+
+        body.dark-mode .form-control::placeholder {
+            color: #bbb;
+        }
+
         .form-check.form-switch {
             display: flex !important;
             align-items: center;
+            padding-left: 0; /* Remove default padding */
+        }
+
+        .form-check.form-switch .form-check-input {
+            width: 3em; /* Make toggle wider */
+            height: 1.5em; /* Make toggle taller */
+        }
+
+        .form-check.form-switch .form-check-label {
+            margin-left: 0; /* Remove default margin */
         }
     </style>
 </head>
@@ -136,9 +163,9 @@
                 </h2>
                 <div id="collapseVisual" class="accordion-collapse collapse" aria-labelledby="headingVisual" data-bs-parent="#settingsAccordion">
                     <div class="accordion-body">
-                        <div class="form-check form-switch d-flex align-items-center">
-                            <input class="form-check-input" type="checkbox" id="darkModeToggle">
-                            <label class="form-check-label ms-2" for="darkModeToggle"><i class="bi bi-moon-stars-fill"></i> Dark Mode</label>
+                        <div class="form-check form-switch d-flex justify-content-between align-items-center">
+                            <label class="form-check-label" for="darkModeToggle"><i class="bi bi-moon-stars-fill"></i> Dark Mode</label>
+                            <input class="form-check-input ms-auto" type="checkbox" id="darkModeToggle">
                         </div>
                     </div>
                 </div>
@@ -151,13 +178,26 @@
                 </h2>
                 <div id="collapseOnlineSearch" class="accordion-collapse collapse" aria-labelledby="headingOnlineSearch" data-bs-parent="#settingsAccordion">
                     <div class="accordion-body">
-                        <div class="form-check form-switch d-flex align-items-center">
-                            <input class="form-check-input" type="checkbox" id="forceOpenFoodFactsToggle">
-                            <label class="form-check-label ms-2" for="forceOpenFoodFactsToggle"><i class="bi bi-globe"></i> Force Open Food Facts API</label>
+                        <div class="form-check form-switch d-flex justify-content-between align-items-center mb-3">
+                            <label class="form-check-label" for="forceOpenFoodFactsToggle"><i class="bi bi-globe"></i> Force Open Food Facts API</label>
+                            <input class="form-check-input ms-auto" type="checkbox" id="forceOpenFoodFactsToggle">
                         </div>
+
+                        <div class="mb-3">
+                            <label for="nutritionixAppId" class="form-label">Nutritionix App ID</label>
+                            <input type="text" class="form-control" id="nutritionixAppId" placeholder="Enter Nutritionix App ID">
+                        </div>
+                        <div class="mb-3">
+                            <label for="nutritionixAppKey" class="form-label">Nutritionix App Key</label>
+                            <input type="password" class="form-control" id="nutritionixAppKey" placeholder="Enter Nutritionix App Key">
+                        </div>
+                        
+                        <button id="saveApiKeys" class="btn btn-primary">Save API Keys</button>
                     </div>
                 </div>
             </div>
+            <div class="accordion-item">
+                </div>
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingAbout">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAbout" aria-expanded="false" aria-controls="collapseAbout">
@@ -250,6 +290,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             const darkModeToggle = document.getElementById('darkModeToggle');
             const forceOpenFoodFactsToggle = document.getElementById('forceOpenFoodFactsToggle');
+            const nutritionixAppIdInput = document.getElementById('nutritionixAppId');
+            const nutritionixAppKeyInput = document.getElementById('nutritionixAppKey');
+            
+            const saveApiKeysButton = document.getElementById('saveApiKeys');
 
             const applyTheme = (theme) => {
                 if (theme === 'dark') {
@@ -280,6 +324,11 @@
                 forceOpenFoodFactsToggle.checked = false;
             }
 
+            // Load API keys
+            nutritionixAppIdInput.value = localStorage.getItem('nutritionixAppId') || '';
+            nutritionixAppKeyInput.value = localStorage.getItem('nutritionixAppKey') || '';
+            
+
             // Event Listeners for toggles
             darkModeToggle.addEventListener('click', () => {
                 const theme = darkModeToggle.checked ? 'dark' : 'light';
@@ -291,12 +340,26 @@
                 localStorage.setItem('forceOpenFoodFacts', forceOpenFoodFactsToggle.checked);
             });
 
-            // Synchronize theme across tabs/windows
+            // Event Listener for saving API keys
+            saveApiKeysButton.addEventListener('click', () => {
+                localStorage.setItem('nutritionixAppId', nutritionixAppIdInput.value);
+                localStorage.setItem('nutritionixAppKey', nutritionixAppKeyInput.value);
+                
+                alert('API Keys saved!');
+            });
+
+            // Synchronize theme and API keys across tabs/windows
             window.addEventListener('storage', (event) => {
                 if (event.key === 'theme') {
                     applyTheme(event.newValue);
                 } else if (event.key === 'forceOpenFoodFacts') {
                     forceOpenFoodFactsToggle.checked = (event.newValue === 'true');
+                } else if (event.key === 'nutritionixAppId') {
+                    nutritionixAppIdInput.value = event.newValue || '';
+                } else if (event.key === 'nutritionixAppKey') {
+                    nutritionixAppKeyInput.value = event.newValue || '';
+                } else if (event.key === 'openFoodFactsApiKey') {
+                    openFoodFactsApiKeyInput.value = event.newValue || '';
                 }
             });
         });
