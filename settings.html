@@ -217,13 +217,20 @@
                             <label for="nutritionixAppKey" class="form-label">Nutritionix App Key</label>
                             <input type="password" class="form-control" id="nutritionixAppKey" placeholder="Enter Nutritionix App Key">
                         </div>
+                        <div class="mb-3">
+                            <label for="edamamAppId" class="form-label">Edamam App ID</label>
+                            <input type="text" class="form-control" id="edamamAppId" placeholder="Enter Edamam App ID">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edamamAppKey" class="form-label">Edamam App Key</label>
+                            <input type="password" class="form-control" id="edamamAppKey" placeholder="Enter Edamam App Key">
+                        </div>
                         
                         <button id="saveApiKeys" class="btn btn-primary">Save API Keys</button>
                     </div>
                 </div>
             </div>
-            <div class="accordion-item">
-                </div>
+            
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingAbout">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAbout" aria-expanded="false" aria-controls="collapseAbout">
@@ -253,7 +260,7 @@
 
                         <h5 class="mt-4">3. Online Search</h5>
                         <p>
-                            To search for food items online, navigate to the <strong>"Online Search" tab</strong>. Type your query into the <strong>search box</strong> and click the <strong>"Search" button</strong>. The app will first try to find results using the Nutritionix API. If that doesn't work (e.g., due to API limits), it will automatically try the Open Food Facts API.
+                            To search for food items online, navigate to the <strong>"Online Search" tab</strong>. Type your query into the <strong>search box</strong> and click the <strong>"Search" button</strong>. The app will first try to find results using the Nutritionix API. If that doesn't work, it will automatically try the Edamam API, and then the Open Food Facts API as a final fallback.
                             Click on any search result in the list to see detailed nutrition facts in a pop-up window. Click the <strong>"Use" button</strong> next to a search result to automatically fill the calculator with its carbohydrate and serving information.
                         </p>
 
@@ -264,47 +271,6 @@
                             Click the <strong>trash can icon</strong> to remove a saved item (you'll be asked to confirm in a pop-up).
                             Use the <strong>"Add Custom" button</strong> to manually add a new food item to your saved list by entering its label, serving size, and carbs per serving in the modal that appears.
                         </p>
-
-                        <h4 class="mt-4">Technical Details: How Everything Works</h4>
-                        <p>
-                            This application is built using standard web technologies, designed for a smooth user experience directly in your browser.
-                        </p>
-                        <ul>
-                            <li>
-                                <strong>Carb Calculation Logic:</strong>
-                                When you input values into the "Carbohydrates per 100g" and "Weight of Food (g)" fields (which are HTML <code>&lt;input type="number"&gt;</code> elements) and click the "Calculate" button (an HTML <code>&lt;button&gt;</code> element), a JavaScript event listener attached to the button's <code>'click'</code> event is triggered. This listener retrieves the numerical values from the input fields using <code>document.getElementById('inputId').value</code> and converts them to floating-point numbers using <code>parseFloat()</code>. The core calculation, <code>(carbs / 100) * weight</code>, is then performed. The result is formatted to one decimal place using <code>.toFixed(1)</code> and displayed by updating the <code>textContent</code> property of the HTML element designated for total carbohydrates (<code>&lt;p id="totalCarbs"&gt;</code>).
-                            </li>
-                            <li>
-                                <strong>Saving and Loading Items (localStorage):</strong>
-                                Your saved food items and your dark mode preference are managed using the browser's <strong>localStorage API</strong>. This API provides a simple key-value store that persists data across browser sessions (even after closing and reopening the browser). When you save an item, its data (an object containing properties like `id`, `label`, `totalCarbs`, `carbsPer100g`) is converted into a JSON string using <code>JSON.stringify()</code> and stored under a specific key (e.g., <code>'savedItems'</code>). When the application loads (on <code>DOMContentLoaded</code>), it retrieves this JSON string using <code>localStorage.getItem()</code>, parses it back into a JavaScript array of objects using <code>JSON.parse()</code>, and then dynamically renders these items onto the page. The dark mode preference is similarly stored and retrieved.
-                                Additionally, the application now includes validation to prevent duplicate labels and ensure a label is provided when saving items. If a duplicate label is detected or no label is entered, an appropriate error message will be displayed to the user.
-                            </li>
-                            <li>
-                                <strong>Online Search and API Interaction (<code>fetch</code> API & Fallback):</strong>
-                                The online search functionality leverages the browser's native <strong><code>fetch</code> API</strong> for making asynchronous HTTP requests to external nutrition databases. 
-                                <ul>
-                                    <li>
-                                        <strong>Nutritionix API (Primary):</strong> The application first attempts to query the Nutritionix API. This involves two main types of requests:
-                                        <ol>
-                                            <li>An initial <code>GET</code> request to <code>/v2/search/instant</code> with the user's query. This returns a list of common and branded food items.</li>
-                                            <li>For each of the top 5 results from the instant search, a subsequent <code>POST</code> request is made to <code>/v2/natural/nutrients</code>. This request sends the food name in the request body and retrieves detailed nutrient information. Each <code>fetch</code> call returns a Promise, and <code>Promise.all()</code> is used to wait for all detail requests to complete concurrently.</li>
-                                        </ol>
-                                        Error handling is crucial here: if any Nutritionix API call fails (e.g., due to an HTTP status code indicating an error like 401 Unauthorized, 429 Too Many Requests, or any network issue), the <code>catch</code> block for the Nutritionix attempt is triggered.
-                                    </li>
-                                    <li>
-                                        <strong>Open Food Facts API (Fallback):</strong> Upon a Nutritionix failure, the application automatically attempts to query the Open Food Facts API. A <code>GET</code> request is made to their search endpoint (<code>/cgi/search.pl</code>) with the user's query. Open Food Facts typically provides data in a different structure than Nutritionix. Therefore, the JavaScript code includes logic to parse the Open Food Facts JSON response and map its nutrient fields (e.g., <code>nutriments.carbohydrates_100g</code>, <code>nutriments.energy_kcal_100g</code>) to a consistent internal object structure that mimics the Nutritionix format. This ensures that the rest of the application's rendering logic (for displaying search results and detailed nutrition facts) can work seamlessly regardless of which API provided the data.
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <strong>Dynamic User Interface (UI) Updates (DOM Manipulation):</strong>
-                                All visual changes and interactivity within the application are achieved through direct manipulation of the <strong>Document Object Model (DOM)</strong> using JavaScript. When a calculation is performed, search results are received, or a modal needs to be displayed, JavaScript functions create new HTML elements (e.g., <code>document.createElement('li')</code>), set their attributes and content (<code>element.textContent = '...'</code>, <code>element.setAttribute('...', '...')</code>), and append them to existing elements in the HTML structure (<code>parentElement.appendChild(newElement)</code>). Similarly, elements can be hidden (<code>element.style.display = 'none'</code>) or removed. This dynamic approach allows for a responsive and interactive user experience without requiring full page reloads.
-                            </li>
-                            <li>
-                                <strong>Animations:</strong>
-                                The application incorporates subtle animations to enhance the user experience. The <code>slideIn</code> animation is used for online search results, making them appear smoothly from the left. The <code>fade-in</code> animation is applied to the result card after a calculation, providing a gentle visual transition as the results become visible.
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -318,6 +284,8 @@
             const forceOpenFoodFactsToggle = document.getElementById('forceOpenFoodFactsToggle');
             const nutritionixAppIdInput = document.getElementById('nutritionixAppId');
             const nutritionixAppKeyInput = document.getElementById('nutritionixAppKey');
+            const edamamAppIdInput = document.getElementById('edamamAppId');
+            const edamamAppKeyInput = document.getElementById('edamamAppKey');
             
             const saveApiKeysButton = document.getElementById('saveApiKeys');
 
@@ -353,6 +321,8 @@
             // Load API keys
             nutritionixAppIdInput.value = localStorage.getItem('nutritionixAppId') || '';
             nutritionixAppKeyInput.value = localStorage.getItem('nutritionixAppKey') || '';
+            edamamAppIdInput.value = localStorage.getItem('edamamAppId') || '';
+            edamamAppKeyInput.value = localStorage.getItem('edamamAppKey') || '';
             
 
             // Event Listeners for toggles
@@ -370,6 +340,8 @@
             saveApiKeysButton.addEventListener('click', () => {
                 localStorage.setItem('nutritionixAppId', nutritionixAppIdInput.value);
                 localStorage.setItem('nutritionixAppKey', nutritionixAppKeyInput.value);
+                localStorage.setItem('edamamAppId', edamamAppIdInput.value);
+                localStorage.setItem('edamamAppKey', edamamAppKeyInput.value);
                 
                 alert('API Keys saved!');
             });
@@ -384,8 +356,10 @@
                     nutritionixAppIdInput.value = event.newValue || '';
                 } else if (event.key === 'nutritionixAppKey') {
                     nutritionixAppKeyInput.value = event.newValue || '';
-                } else if (event.key === 'openFoodFactsApiKey') {
-                    openFoodFactsApiKeyInput.value = event.newValue || '';
+                } else if (event.key === 'edamamAppId') {
+                    edamamAppIdInput.value = event.newValue || '';
+                } else if (event.key === 'edamamAppKey') {
+                    edamamAppKeyInput.value = event.newValue || '';
                 }
             });
         });

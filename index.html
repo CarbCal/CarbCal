@@ -392,6 +392,7 @@
                             <div class="alert alert-info mt-2" role="alert" id="apiStatusMessage" style="display: none;"></div>
                             <ul id="onlineSearchResults" class="list-group mt-3">
                             </ul>
+                            <button id="showMoreBtn" class="btn btn-outline-primary w-100 mt-3" style="display: none;">Show More</button>
                         </div>
                         <div class="tab-pane fade" id="saved-panel" role="tabpanel" aria-labelledby="saved-tab">
                             <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap mb-2">
@@ -507,6 +508,7 @@
             const onlineSearchInput = document.getElementById('onlineSearchInput');
             const onlineSearchBtn = document.getElementById('onlineSearchBtn');
             const onlineSearchResults = document.getElementById('onlineSearchResults');
+            const showMoreBtn = document.getElementById('showMoreBtn');
             const exportBtn = document.getElementById('exportItemsBtn');
             const importInput = document.getElementById('importItemsInput');
 
@@ -553,6 +555,9 @@
             }
 
             let itemToRemove = null;
+            let currentApi = null;
+            let nextPageUrl = null;
+            let currentQuery = '';
 
             const renderSavedItems = () => {
                 const searchTerm = searchInput.value.toLowerCase();
@@ -731,6 +736,8 @@
             // --- Online Search Implementation (Nutritionix) ---
             const nutritionixAppId = localStorage.getItem('nutritionixAppId') || 'YOUR_APP_ID';
             const nutritionixAppKey = localStorage.getItem('nutritionixAppKey') || 'YOUR_APP_KEY';
+            const edamamAppId = localStorage.getItem('edamamAppId') || 'YOUR_APP_ID';
+            const edamamAppKey = localStorage.getItem('edamamAppKey') || 'YOUR_APP_KEY';
             
 
             // Open Food Facts API Base URL
@@ -825,7 +832,7 @@
                         const results = [...(searchData.common || []), ...(searchData.branded || [])];
 
                         if (results.length === 0) {
-                            throw new Error('No results from Nutritionix. Falling back to Open Food Facts.');
+                            throw new Error('No results from Nutritionix. Falling back to Edamam.');
                         }
 
                         // Step 2: Fetch details for the top 5 results from Nutritionix
@@ -850,8 +857,55 @@
                         foodData = detailResults.map(detail => detail.foods && detail.foods.length > 0 ? detail.foods[0] : null).filter(Boolean);
 
                     } catch (nutritionixError) {
-                        console.warn('Nutritionix API failed:', nutritionixError.message, 'Attempting Open Food Facts...');
-                        onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Nutritionix failed. Trying Open Food Facts...</li>';
+                        console.warn('Nutritionix API failed:', nutritionixError.message, 'Attempting Edamam...');
+                        onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Nutritionix failed. Trying Edamam...</li>';
+                    }
+                }
+
+                // --- Fallback to Edamam API ---
+                if (!forceOpenFoodFacts && (!foodData || foodData.length === 0)) {
+                    try {
+                        if (!edamamAppId || !edamamAppKey || edamamAppId.includes('YOUR') || edamamAppKey.includes('YOUR')) {
+                            throw new Error('Edamam API credentials are not configured.');
+                        }
+
+                        const edamamResponse = await fetch(`https://api.edamam.com/api/food-database/v2/parser?ingr=${encodeURIComponent(query)}&app_id=${edamamAppId}&app_key=${edamamAppKey}`);
+
+                        if (!edamamResponse.ok) {
+                            throw new Error(`Edamam API Search Error: ${edamamResponse.status} - ${edamamResponse.statusText}`);
+                        }
+
+                        const edamamData = await edamamResponse.json();
+                        const results = edamamData.hints || [];
+
+                        if (results.length === 0) {
+                            throw new Error('No results from Edamam. Falling back to Open Food Facts.');
+                        }
+
+                        foodData = results.slice(0, 5).map(item => {
+                            const food = item.food;
+                            const nutrients = food.nutrients;
+                            return {
+                                food_name: food.label,
+                                serving_weight_grams: 100, // Edamam provides nutrients per 100g
+                                nf_total_carbohydrate: nutrients.CHOCDF,
+                                nf_calories: nutrients.ENERC_KCAL,
+                                nf_total_fat: nutrients.FAT,
+                                nf_saturated_fat: nutrients.FASAT,
+                                nf_cholesterol: nutrients.CHOLE || 0,
+                                nf_sodium: nutrients.NA,
+                                nf_dietary_fiber: nutrients.FIBTG,
+                                nf_sugars: nutrients.SUGAR,
+                                nf_protein: nutrients.PROCNT,
+                                nf_potassium: nutrients.K || 0,
+                                nf_p: nutrients.P || 0,
+                                photo: { thumb: food.image || null }
+                            };
+                        });
+
+                    } catch (edamamError) {
+                        console.warn('Edamam API failed:', edamamError.message, 'Attempting Open Food Facts...');
+                        onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Edamam failed. Trying Open Food Facts...</li>';
                     }
                 }
 
