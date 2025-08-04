@@ -143,6 +143,15 @@
         .form-check.form-switch .form-check-label {
             margin-left: 0; /* Remove default margin */
         }
+
+        body.dark-mode #forceOpenFoodFactsToggle.form-check-input:checked {
+            background-color: #0c63e4 !important; /* Green when checked in dark mode */
+            border-color: #0c63e4 !important;
+        }
+        body.dark-mode #forceOpenFoodFactsToggle.form-check-input {
+            background-color: #444 !important; /* Gray when unchecked in dark mode */
+            border-color: #888 !important;
+        }
     </style>
 </head>
 <body>
