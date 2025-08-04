@@ -394,9 +394,17 @@
                             </ul>
                         </div>
                         <div class="tab-pane fade" id="saved-panel" role="tabpanel" aria-labelledby="saved-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h3 class="h4 mb-0">Saved Items</h3>
-                                <button id="addCustomItemBtn" class="btn btn-outline-primary"><i class="bi bi-plus-circle-fill"></i> Add Custom</button>
+                            <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap mb-2">
+                                <button id="exportItemsBtn" class="btn btn-outline-secondary flex-fill mx-2" style="min-width:140px;max-width:200px;" title="Export Saved Items">
+                                    <i class="bi bi-download"></i> Export
+                                </button>
+                                <label for="importItemsInput" class="btn btn-outline-secondary flex-fill mx-2 mb-0" style="min-width:140px;max-width:200px;cursor:pointer;" title="Import Saved Items">
+                                    <i class="bi bi-upload"></i> Import
+                                    <input type="file" id="importItemsInput" accept=".txt" style="display:none;">
+                                </label>
+                                <button id="addCustomItemBtn" class="btn btn-outline-primary flex-fill mx-2" style="min-width:140px;max-width:200px;">
+                                    <i class="bi bi-plus-circle-fill"></i> Add Custom
+                                </button>
                             </div>
                             <div class="mb-3">
                                 <input type="text" id="searchInput" class="form-control" placeholder="Search saved items...">
@@ -499,6 +507,8 @@
             const onlineSearchInput = document.getElementById('onlineSearchInput');
             const onlineSearchBtn = document.getElementById('onlineSearchBtn');
             const onlineSearchResults = document.getElementById('onlineSearchResults');
+            const exportBtn = document.getElementById('exportItemsBtn');
+            const importInput = document.getElementById('importItemsInput');
 
             // Apply saved theme on load
             const applyTheme = (theme) => {
@@ -1024,6 +1034,59 @@
                     nutritionFactsModalBody.innerHTML = detailsHtml;
                     nutritionFactsModal.show();
                 }
+            });
+
+            // --- Export/Import Saved Items ---
+            
+
+            // Export saved items as a .txt file (JSON format)
+            exportBtn.addEventListener('click', () => {
+                const dataStr = JSON.stringify(savedItems, null, 2);
+                const blob = new Blob([dataStr], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'CarbCal_SavedItems.txt';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 0);
+            });
+
+            // Import saved items from a .txt file (expects JSON)
+            importInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        if (!Array.isArray(imported)) throw new Error('Invalid format');
+                        // Merge, avoiding duplicate labels (case-insensitive)
+                        const existingLabels = new Set(savedItems.map(i => i.label.toLowerCase()));
+                        let added = 0;
+                        imported.forEach(item => {
+                            if (item.label && !existingLabels.has(item.label.toLowerCase())) {
+                                savedItems.push(item);
+                                existingLabels.add(item.label.toLowerCase());
+                                added++;
+                            }
+                        });
+                        if (added > 0) {
+                            localStorage.setItem('savedItems', JSON.stringify(savedItems));
+                            renderSavedItems();
+                            alert(`Imported ${added} new item(s).`);
+                        } else {
+                            alert('No new items were imported.');
+                        }
+                    } catch (err) {
+                        alert('Failed to import: Invalid file format.');
+                    }
+                    importInput.value = ''; // Reset input so same file can be re-imported if needed
+                };
+                reader.readAsText(file);
             });
         });
     </script>
