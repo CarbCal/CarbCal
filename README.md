@@ -31,6 +31,11 @@
 
 ## 🚀 How to Use
 
+You can access the live application at: [https://lucamurdoch.github.io/CarbCal/](https://lucamurdoch.github.io/CarbCal/)
+
+If you prefer to run it locally:
+
+
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/LucaMurdoch/CarbCal.git
