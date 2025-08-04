@@ -15,6 +15,10 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
             color: #212529;
+            background-image: url('Bread.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
 
         .navbar {
@@ -35,20 +39,20 @@
             border: none;
             border-radius: 1.5rem;
             box-shadow: 0 4px 6px rgba(0,0,0,.1);
-            margin-bottom: .5rem; /* Matching list-group-item margin */
+            margin-bottom: .5rem;
         }
 
         .accordion-button {
             background-color: #f8f9fa;
             color: #212529;
-            border-radius: 1.5rem; /* All corners curved when collapsed */
+            border-radius: 1.5rem;
         }
         
         .accordion-button:not(.collapsed) {
             background-color: #e7f1ff;
             color: #0c63e4;
-            border-bottom-left-radius: 0; /* Flatten bottom when expanded */
-            border-bottom-right-radius: 0; /* Flatten bottom when expanded */
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
         }
 
         .accordion-body {
@@ -56,28 +60,41 @@
             color: #212529;
             border-bottom-left-radius: 1.5rem;
             border-bottom-right-radius: 1.5rem;
-            border-top-left-radius: 0; /* Ensure top corners are not rounded when body is visible */
-            border-top-right-radius: 0; /* Ensure top corners are not rounded when body is visible */
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
         }
 
-        /* --- Dark Mode Overrides --- */
+        /* --- Dark Mode Overrides (match index.html) --- */
         body.dark-mode {
-            background-color: #121212;
-            color: #e0e0e0;
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: -1;
         }
 
         body.dark-mode .navbar {
-            background-color: #1f1f1f;
+            background-color: #2d2d2d !important;
+            color: #f8f9fa !important;
             border-bottom: 1px solid #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,.3);
         }
 
         body.dark-mode .navbar-brand {
-            color: #e0e0e0;
+            color: #f8f9fa !important;
         }
 
         body.dark-mode .container h2,
         body.dark-mode .container h3 {
-            color: #e0e0e0;
+            color: #f8f9fa !important;
         }
         
         body.dark-mode .accordion-item {
@@ -87,69 +104,69 @@
         }
 
         body.dark-mode .accordion-button {
-            background-color: #333;
-            color: #e0e0e0;
-            border-radius: 1.5rem; /* All corners curved when collapsed */
+            background-color: #333 !important;
+            color: #e0e0e0 !important;
+            border-radius: 1.5rem;
         }
         
         body.dark-mode .accordion-button:not(.collapsed) {
-            background-color: #007bff;
-            color: #fff;
-            border-bottom-left-radius: 0; /* Flatten bottom when expanded */
-            border-bottom-right-radius: 0; /* Flatten bottom when expanded */
+            background-color: rgb(60, 60, 60) !important;
+            color: #f8f9fa !important;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
         }
 
         body.dark-mode .accordion-body {
-            background-color: #1f1f1f;
-            color: #e0e0e0;
+            background-color: #222222 !important;
+            color: #f8f9fa !important;
             border-bottom-left-radius: 1.5rem;
             border-bottom-right-radius: 1.5rem;
-            border-top-left-radius: 0; /* Ensure top corners are not rounded when body is visible */
-            border-top-right-radius: 0; /* Ensure top corners are not rounded when body is visible */
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
         }
 
         body.dark-mode .form-check-label {
-            color: #e0e0e0;
+            color: #e0e0e0 !important;
         }
 
         body.dark-mode .form-control {
-            background-color: #222222;
-            color: #f8f9fa;
-            border-color: #555;
+            background-color: #222222 !important;
+            color: #f8f9fa !important;
+            border-color: #555 !important;
         }
 
         body.dark-mode .form-control:focus {
-            background-color: #222222; /* Keep background dark on focus */
-            color: #f8f9fa; /* Keep text light on focus */
-            border-color: #777; /* Adjust border color on focus */
-            box-shadow: 0 0 0 0.25rem rgba(192, 192, 192, 0.25); /* Adjust shadow for dark mode focus */
+            background-color: #222222 !important;
+            color: #f8f9fa !important;
+            border-color: #777 !important;
+            box-shadow: 0 0 0 0.25rem rgba(192, 192, 192, 0.25) !important;
         }
 
         body.dark-mode .form-control::placeholder {
-            color: #bbb;
+            color: #bbb !important;
         }
 
         .form-check.form-switch {
             display: flex !important;
             align-items: center;
-            padding-left: 0; /* Remove default padding */
+            padding-left: 0;
         }
 
         .form-check.form-switch .form-check-input {
-            width: 3em; /* Make toggle wider */
-            height: 1.5em; /* Make toggle taller */
+            width: 3em;
+            height: 1.5em;
         }
 
         .form-check.form-switch .form-check-label {
-            margin-left: 0; /* Remove default margin */
+            margin-left: 0;
         }
 
         body.dark-mode #forceOpenFoodFactsToggle.form-check-input:checked {
-            background-color: #0c63e4 !important; /* Green when checked in dark mode */
+            background-color: #0c63e4 !important;
             border-color: #0c63e4 !important;
         }
         body.dark-mode #forceOpenFoodFactsToggle.form-check-input {
-            background-color: #444 !important; /* Gray when unchecked in dark mode */
+            background-color: #444 !important;
             border-color: #888 !important;
         }
     </style>

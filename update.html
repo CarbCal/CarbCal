@@ -13,6 +13,10 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
             color: #212529;
+            background-image: url('Bread.png');         /* Added for background image */
+            background-size: cover;                     /* Cover the viewport */
+            background-position: center;                /* Center the image */
+            background-attachment: fixed;               /* Fixed background */
         }
         .navbar {
             box-shadow: 0 2px 4px rgba(0,0,0,.1);
@@ -33,13 +37,24 @@
 
         /* Dark Mode Styles */
         body.dark-mode {
-            background-color: #2d2d2d; /* Dark background for body */
-            color: #f8f9fa; /* Light text for body */
+            background-color: #2d2d2d !important;
+            color: #f8f9fa !important;
+        }
+
+        body.dark-mode::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: -1;
         }
 
         body.dark-mode .navbar {
-            background-color: #2d2d2d !important; /* Darker navbar */
-            color: #f8f9fa !important; /* Light text for navbar */
+            background-color: #2d2d2d !important;
+            color: #f8f9fa !important;
             box-shadow: 0 2px 4px rgba(0,0,0,.3);
         }
 
@@ -48,14 +63,14 @@
         }
 
         body.dark-mode .card {
-            background-color: #2d2d2d !important; /* Dark background for cards */
-            color: #f8f9fa; /* Light text for cards */
+            background-color: #2d2d2d !important;
+            color: #f8f9fa;
             box-shadow: 0 4px 6px rgba(0,0,0,.3);
-            border: 1px solid rgba(255, 255, 255, 0.2); /* White border with transparency */
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         body.dark-mode .card-body {
-            background-color: #222222 !important; /* Darker inside for card body */
+            background-color: #222222 !important;
             border-radius: 1rem; /* Maintain rounded corners for all sides */
         }
     </style>
