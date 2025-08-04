@@ -45,11 +45,7 @@ If you prefer to run it locally:
     cd CarbCal/WebApp
     ```
 3.  **Configure API Keys (Optional):**
-    For online food search functionality, you'll need to obtain API keys from Nutritionix. Edit `index.html` and replace `YOUR_APP_ID` and `YOUR_APP_KEY` with your actual keys.
-    ```javascript
-    const appId = 'YOUR_APP_ID';
-    const appKey = 'YOUR_APP_KEY';
-    ```
+    For online food search functionality, you'll need to obtain API keys from Nutritionix. These can be added in the settings page of the application.
     If API keys are not configured, the application will automatically fall back to using the Open Food Facts API.
 4.  **Open the application:**
     Simply open the `index.html` file in your favorite web browser.
