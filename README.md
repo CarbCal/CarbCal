@@ -1,4 +1,4 @@
-# CarbCal WebApp - Pre-Release
+# CarbCal WebApp
 
 <p align="center">
   <img src="CarbCal.png" alt="CarbCal Logo" width="150"/>
