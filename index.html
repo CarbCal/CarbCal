@@ -368,7 +368,7 @@
                     </div>
                 </div>
 
-                <div id="search-card" class="card mt-4">
+                <div id="search-card" class="card mt-5">
                     <div class="card-header">
                         <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -389,10 +389,12 @@
                                 <input type="text" id="onlineSearchInput" class="form-control" placeholder="Search for a food...">
                                 <button id="onlineSearchBtn" class="btn btn-info" type="button">Search</button>
                             </div>
-                            <div class="alert alert-info mt-2" role="alert" id="apiStatusMessage" style="display: none;"></div>
+                            <div class="alert alert-info mt-2 small" role="alert" id="apiStatusMessage" style="display: none;"></div>
                             <ul id="onlineSearchResults" class="list-group mt-3">
                             </ul>
-                            <button id="showMoreBtn" class="btn btn-outline-primary w-100 mt-3" style="display: none;">Show More</button>
+                            <div class="d-flex justify-content-center">
+                                <button id="showMoreBtn" class="btn btn-outline-primary w-100 mt-1" style="display: none;">Show More</button>
+                            </div>
                         </div>
                         <div class="tab-pane fade" id="saved-panel" role="tabpanel" aria-labelledby="saved-tab">
                             <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap mb-2">
@@ -533,31 +535,14 @@
                     applyTheme(event.newValue);
                 }
             });
-            
 
             let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
-
-            // Data migration for older items that may not have a servingSize property
-            let needsSave = false;
-            savedItems.forEach(item => {
-                if (item.servingSize === undefined && item.totalCarbs !== undefined && item.carbsPer100g !== undefined) {
-                    if (item.carbsPer100g > 0) {
-                        item.servingSize = (item.totalCarbs * 100) / item.carbsPer100g;
-                    } else {
-                        item.servingSize = 0;
-                    }
-                    needsSave = true;
-                }
-            });
-
-            if (needsSave) {
-                localStorage.setItem('savedItems', JSON.stringify(savedItems));
-            }
-
             let itemToRemove = null;
-            let currentApi = null;
-            let nextPageUrl = null;
             let currentQuery = '';
+            let nextPageUrl = null;
+            let currentApi = '';
+            let nutritionixPage = 1;
+            let edamamPage = 1;
 
             const renderSavedItems = () => {
                 const searchTerm = searchInput.value.toLowerCase();
@@ -567,11 +552,9 @@
 
                 savedItemsList.innerHTML = '';
                 if (filteredItems.length === 0) {
-                    if (savedItems.length === 0) {
-                        savedItemsList.innerHTML = '<li class="list-group-item text-center">You have no saved items.</li>';
-                    } else {
-                        savedItemsList.innerHTML = '<li class="list-group-item text-center">No items match your search.</li>';
-                    }
+                    savedItemsList.innerHTML = savedItems.length === 0 ?
+                        '<li class="list-group-item text-center">You have no saved items.</li>' :
+                        '<li class="list-group-item text-center">No items match your search.</li>';
                     return;
                 }
 
@@ -593,8 +576,7 @@
                         carbsPer100gInput.value = item.carbsPer100g.toFixed(2);
                         foodWeightInput.value = item.servingSize.toFixed(1);
                         labelInput.value = item.label;
-                        const resultContainer = document.getElementById('result-container');
-                        resultContainer.style.maxHeight = '0px';
+                        resultCard.style.maxHeight = '0px';
                         window.scrollTo(0, 0);
                     });
                     li.querySelector('.remove-btn').addEventListener('click', () => {
@@ -606,7 +588,6 @@
             };
 
             searchInput.addEventListener('input', renderSavedItems);
-
             document.getElementById('saved-tab').addEventListener('shown.bs.tab', renderSavedItems);
 
             const saveItems = () => {
@@ -618,29 +599,23 @@
                 const weight = parseFloat(foodWeightInput.value) || 0;
                 const total = (carbs / 100) * weight;
                 totalCarbsEl.textContent = `${total.toFixed(1)} g`;
-
-                const resultContainer = document.getElementById('result-container');
-                const resultCard = document.getElementById('resultCard');
-                resultContainer.style.maxHeight = '500px'; // Set a large enough max-height
+                document.getElementById('result-container').style.maxHeight = '500px';
                 resultCard.classList.add('fade-in');
             });
 
             closeResultCard.addEventListener('click', () => {
-                const resultContainer = document.getElementById('result-container');
-                const resultCard = document.getElementById('resultCard');
                 resultCard.classList.remove('fade-in');
-                resultContainer.style.maxHeight = '0px';
+                document.getElementById('result-container').style.maxHeight = '0px';
             });
 
             addToListBtn.addEventListener('click', () => {
                 const carbs = parseFloat(carbsPer100gInput.value) || 0;
                 const weight = parseFloat(foodWeightInput.value) || 0;
                 const totalCarbs = (carbs / 100) * weight;
-                const label = labelInput.value.trim(); // Get trimmed label
+                const label = labelInput.value.trim();
                 const labelError = document.getElementById('labelError');
                 const noLabelError = document.getElementById('noLabelError');
 
-                // Reset error messages
                 labelError.style.display = 'none';
                 noLabelError.style.display = 'none';
 
@@ -655,19 +630,16 @@
                 }
 
                 if (totalCarbs > 0) {
-                    const newItem = {
+                    savedItems.unshift({
                         id: Date.now(),
                         label,
                         totalCarbs,
                         carbsPer100g: carbs,
                         servingSize: weight
-                    };
-                    savedItems.unshift(newItem);
+                    });
                     saveItems();
                     renderSavedItems();
                     labelInput.value = '';
-                    labelError.style.display = 'none';
-                    noLabelError.style.display = 'none';
                 }
             });
 
@@ -682,9 +654,7 @@
             });
 
             addCustomItemBtn.addEventListener('click', () => {
-                customLabelInput.value = '';
-                servingSizeInput.value = '';
-                carbsInServingInput.value = '';
+                [customLabelInput, servingSizeInput, carbsInServingInput].forEach(i => i.value = '');
                 document.getElementById('customLabelError').style.display = 'none';
                 document.getElementById('customNoLabelError').style.display = 'none';
                 addCustomItemModal.show();
@@ -697,7 +667,6 @@
                 const customLabelError = document.getElementById('customLabelError');
                 const customNoLabelError = document.getElementById('customNoLabelError');
 
-                // Reset error messages
                 customLabelError.style.display = 'none';
                 customNoLabelError.style.display = 'none';
 
@@ -712,253 +681,39 @@
                 }
 
                 if (label && servingSize > 0 && carbsInServing > 0) {
-                    const carbsPer100g = (carbsInServing / servingSize) * 100;
-                    const newItem = {
+                    savedItems.unshift({
                         id: Date.now(),
                         label,
                         totalCarbs: carbsInServing,
-                        carbsPer100g,
+                        carbsPer100g: (carbsInServing / servingSize) * 100,
                         servingSize: servingSize
-                    };
-                    savedItems.unshift(newItem);
+                    });
                     saveItems();
                     renderSavedItems();
                     addCustomItemModal.hide();
-                    customLabelInput.value = '';
-                    servingSizeInput.value = '';
-                    carbsInServingInput.value = '';
-                    customLabelError.style.display = 'none';
-                    customNoLabelError.style.display = 'none';
                 }
             });
 
-
-            // --- Online Search Implementation (Nutritionix) ---
-            const nutritionixAppId = localStorage.getItem('nutritionixAppId') || 'YOUR_APP_ID';
-            const nutritionixAppKey = localStorage.getItem('nutritionixAppKey') || 'YOUR_APP_KEY';
-            const edamamAppId = localStorage.getItem('edamamAppId') || 'YOUR_APP_ID';
-            const edamamAppKey = localStorage.getItem('edamamAppKey') || 'YOUR_APP_KEY';
-            
-
-            // Open Food Facts API Base URL
+            const nutritionixAppId = localStorage.getItem('nutritionixAppId');
+            const nutritionixAppKey = localStorage.getItem('nutritionixAppKey');
+            const edamamAppId = localStorage.getItem('edamamAppId');
+            const edamamAppKey = localStorage.getItem('edamamAppKey');
             const openFoodFactsBaseUrl = 'https://world.openfoodfacts.org/cgi/search.pl';
+
+            const hasNutritionixCredentials = () => nutritionixAppId && nutritionixAppKey && !nutritionixAppId.includes('YOUR') && !nutritionixAppKey.includes('YOUR');
+            const hasEdamamCredentials = () => edamamAppId && edamamAppKey && !edamamAppId.includes('YOUR') && !edamamAppKey.includes('YOUR');
 
             const updateApiStatusMessage = () => {
                 const forceOpenFoodFacts = localStorage.getItem('forceOpenFoodFacts') === 'true';
                 const apiStatusMessage = document.getElementById('apiStatusMessage');
+                apiStatusMessage.style.display = forceOpenFoodFacts ? 'block' : 'none';
                 if (forceOpenFoodFacts) {
                     apiStatusMessage.textContent = 'Force Open Food Facts API is active.';
-                    apiStatusMessage.style.display = 'block';
-                } else {
-                    apiStatusMessage.style.display = 'none';
                 }
             };
 
-            const handleOnlineSearch = async () => {
-                console.log('Force Open Food Facts API setting:', localStorage.getItem('forceOpenFoodFacts'));
-                const query = onlineSearchInput.value.trim();
-                const forceOpenFoodFacts = localStorage.getItem('forceOpenFoodFacts') === 'true';
-
-                if (query.toLowerCase() === 'test') {
-                    onlineSearchResults.innerHTML = '';
-                    for (let i = 1; i <= 5; i++) {
-                        const li = document.createElement('li');
-                        li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
-                        li.style.animationDelay = `${(i - 1) * 0.1}s`;
-                        const foodData = {
-                            food_name: `Test Item ${i}`,
-                            serving_weight_grams: 158.0 + (i * 5),
-                            nf_calories: 205.4 + (i * 10),
-                            nf_total_fat: 0.4 + (i * 0.1),
-                            nf_saturated_fat: 0.1 + (i * 0.05),
-                            nf_cholesterol: 0.0,
-                            nf_sodium: 1.6 + (i * 0.2),
-                            nf_total_carbohydrate: 44.5 + (i * 2),
-                            nf_dietary_fiber: 0.6 + (i * 0.1),
-                            nf_sugars: 0.1 + (i * 0.1),
-                            nf_protein: 4.3 + (i * 0.5),
-                            nf_potassium: 55.3 + (i * 3000),
-                            nf_p: 0 + (i*1),
-                            photo: { thumb: 'CarbCal.png' }
-                        };
-                        li.setAttribute('data-food', JSON.stringify(foodData));
-                        li.innerHTML = `
-                            <div>
-                                <strong class="d-block">${foodData.food_name}</strong>
-                                <small class="text-muted">
-                                    Serving: ${foodData.serving_weight_grams.toFixed(1)}g | Carbs: ${foodData.nf_total_carbohydrate.toFixed(1)}g
-                                </small>
-                            </div>
-                            <button class="btn btn-sm btn-outline-success use-online-item-btn"
-                                data-carbs-per-100g="${((foodData.nf_total_carbohydrate / foodData.serving_weight_grams) * 100).toFixed(2)}"
-                                data-serving-grams="${foodData.serving_weight_grams.toFixed(1)}"
-                                data-name="${foodData.food_name}">
-                                <i class="bi bi-arrow-up-right-square"></i> Use
-                            </button>
-                        `;
-                        onlineSearchResults.appendChild(li);
-                    }
-                    return;
-                }
-                if (query.length < 2) {
-                    onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Please enter at least 2 characters.</li>';
-                    return;
-                }
-
-                onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Searching...</li>';
-
-                let foodData = null;
-
-                if (!forceOpenFoodFacts) {
-                    // --- Try Nutritionix API first ---
-                    try {
-                        if (!nutritionixAppId || !nutritionixAppKey || nutritionixAppId.includes('YOUR') || nutritionixAppKey.includes('YOUR')) {
-                            throw new Error('Nutritionix API credentials are not configured.');
-                        }
-
-                        // Step 1: Get the initial list of foods from Nutritionix
-                        const searchResponse = await fetch(`https://trackapi.nutritionix.com/v2/search/instant?query=${encodeURIComponent(query)}`, {
-                            headers: {
-                                'x-app-id': nutritionixAppId,
-                                'x-app-key': nutritionixAppKey
-                            }
-                        });
-
-                        if (!searchResponse.ok) {
-                            throw new Error(`Nutritionix API Search Error: ${searchResponse.status} - ${searchResponse.statusText}`);
-                        }
-                        
-                        const searchData = await searchResponse.json();
-                        const results = [...(searchData.common || []), ...(searchData.branded || [])];
-
-                        if (results.length === 0) {
-                            throw new Error('No results from Nutritionix. Falling back to Edamam.');
-                        }
-
-                        // Step 2: Fetch details for the top 5 results from Nutritionix
-                        const detailPromises = results.slice(0, 5).map(food => {
-                            return fetch(`https://trackapi.nutritionix.com/v2/natural/nutrients`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'x-app-id': nutritionixAppId,
-                                    'x-app-key': nutritionixAppKey
-                                },
-                                body: JSON.stringify({ query: food.food_name })
-                            }).then(res => {
-                                if (!res.ok) {
-                                    return res.text().then(text => { throw new Error(`Nutritionix detail API error: ${res.status} - ${text}`); });
-                                }
-                                return res.json();
-                            });
-                        });
-
-                        const detailResults = await Promise.all(detailPromises);
-                        foodData = detailResults.map(detail => detail.foods && detail.foods.length > 0 ? detail.foods[0] : null).filter(Boolean);
-
-                    } catch (nutritionixError) {
-                        console.warn('Nutritionix API failed:', nutritionixError.message, 'Attempting Edamam...');
-                        onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Nutritionix failed. Trying Edamam...</li>';
-                    }
-                }
-
-                // --- Fallback to Edamam API ---
-                if (!forceOpenFoodFacts && (!foodData || foodData.length === 0)) {
-                    try {
-                        if (!edamamAppId || !edamamAppKey || edamamAppId.includes('YOUR') || edamamAppKey.includes('YOUR')) {
-                            throw new Error('Edamam API credentials are not configured.');
-                        }
-
-                        const edamamResponse = await fetch(`https://api.edamam.com/api/food-database/v2/parser?ingr=${encodeURIComponent(query)}&app_id=${edamamAppId}&app_key=${edamamAppKey}`);
-
-                        if (!edamamResponse.ok) {
-                            throw new Error(`Edamam API Search Error: ${edamamResponse.status} - ${edamamResponse.statusText}`);
-                        }
-
-                        const edamamData = await edamamResponse.json();
-                        const results = edamamData.hints || [];
-
-                        if (results.length === 0) {
-                            throw new Error('No results from Edamam. Falling back to Open Food Facts.');
-                        }
-
-                        foodData = results.slice(0, 5).map(item => {
-                            const food = item.food;
-                            const nutrients = food.nutrients;
-                            return {
-                                food_name: food.label,
-                                serving_weight_grams: 100, // Edamam provides nutrients per 100g
-                                nf_total_carbohydrate: nutrients.CHOCDF,
-                                nf_calories: nutrients.ENERC_KCAL,
-                                nf_total_fat: nutrients.FAT,
-                                nf_saturated_fat: nutrients.FASAT,
-                                nf_cholesterol: nutrients.CHOLE || 0,
-                                nf_sodium: nutrients.NA,
-                                nf_dietary_fiber: nutrients.FIBTG,
-                                nf_sugars: nutrients.SUGAR,
-                                nf_protein: nutrients.PROCNT,
-                                nf_potassium: nutrients.K || 0,
-                                nf_p: nutrients.P || 0,
-                                photo: { thumb: food.image || null }
-                            };
-                        });
-
-                    } catch (edamamError) {
-                        console.warn('Edamam API failed:', edamamError.message, 'Attempting Open Food Facts...');
-                        onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Edamam failed. Trying Open Food Facts...</li>';
-                    }
-                }
-
-                // --- Fallback to Open Food Facts API (or if forced) ---
-                if (forceOpenFoodFacts || !foodData || foodData.length === 0) {
-                    try {
-                        const offSearchUrl = `${openFoodFactsBaseUrl}?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`;
-                        const offResponse = await fetch(offSearchUrl);
-
-                        if (!offResponse.ok) {
-                            throw new Error(`Open Food Facts API Search Error: ${offResponse.statusText}`);
-                        }
-
-                        const offData = await offResponse.json();
-                        const products = offData.products || [];
-
-                        if (products.length === 0) {
-                            throw new Error('No results found from Open Food Facts.');
-                        }
-
-                        foodData = products.slice(0, 5).map(product => {
-                            // Map Open Food Facts data to a Nutritionix-like structure
-                            const servingSize = product.serving_size ? parseFloat(product.serving_size.replace(/[^0-9.]/g, '')) : 0;
-                            const carbs100g = product.nutriments && product.nutriments.carbohydrates_100g ? parseFloat(product.nutriments.carbohydrates_100g) : 0;
-                            const totalCarbs = (servingSize > 0 && carbs100g > 0) ? (carbs100g / 100) * servingSize : 0;
-
-                            return {
-                                food_name: product.product_name || product.generic_name || 'N/A',
-                                serving_weight_grams: servingSize,
-                                nf_total_carbohydrate: totalCarbs,
-                                nf_calories: product.nutriments && product.nutriments.energy_kcal_100g ? parseFloat(product.nutriments.energy_kcal_100g) : 0,
-                                nf_total_fat: product.nutriments && product.nutriments.fat_100g ? parseFloat(product.nutriments.fat_100g) : 0,
-                                nf_saturated_fat: product.nutriments && product.nutriments['saturated-fat_100g'] ? parseFloat(product.nutriments['saturated-fat_100g']) : 0,
-                                nf_cholesterol: product.nutriments && product.nutriments.cholesterol_100g ? parseFloat(product.nutriments.cholesterol_100g) : 0,
-                                nf_sodium: product.nutriments && product.nutriments.sodium_100g ? parseFloat(product.nutriments.sodium_100g) * 1000 : 0, // Convert g to mg
-                                nf_dietary_fiber: product.nutriments && product.nutriments.fiber_100g ? parseFloat(product.nutriments.fiber_100g) : 0,
-                                nf_sugars: product.nutriments && product.nutriments.sugars_100g ? parseFloat(product.nutriments.sugars_100g) : 0,
-                                nf_protein: product.nutriments && product.nutriments.proteins_100g ? parseFloat(product.nutriments.proteins_100g) : 0,
-                                nf_potassium: product.nutriments && product.nutriments.potassium_100g ? parseFloat(product.nutriments.potassium_100g) * 1000 : 0, // Convert g to mg
-                                nf_p: 0, // Open Food Facts doesn't consistently provide phosphorus
-                                photo: { thumb: product.image_small_url || product.image_url || null } // Use available image URLs
-                            };
-                        });
-
-                    } catch (offError) {
-                        console.error('Open Food Facts API failed:', offError);
-                        onlineSearchResults.innerHTML = '<li class="list-group-item text-danger">Search failed for both APIs. Please try again.</li>';
-                        return;
-                    }
-                }
-
-                // --- Render Results (common for both APIs) ---
-                onlineSearchResults.innerHTML = ''; // Clear the list before adding new results
+            const renderResults = (foodData, loadMore = false) => {
+                if (!loadMore) onlineSearchResults.innerHTML = '';
 
                 if (foodData && foodData.length > 0) {
                     foodData.forEach((food, index) => {
@@ -974,9 +729,7 @@
                         li.innerHTML = `
                             <div>
                                 <strong class="d-block">${foodName}</strong>
-                                <small class="text-muted">
-                                    Serving: ${servingGrams.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g
-                                </small>
+                                <small class="text-muted">Serving: ${servingGrams.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g</small>
                             </div>
                             <button class="btn btn-sm btn-outline-success use-online-item-btn"
                                 data-carbs-per-100g="${carbsPer100g.toFixed(2)}"
@@ -987,48 +740,238 @@
                         `;
                         onlineSearchResults.appendChild(li);
                     });
-                } else {
+                    showMoreBtn.style.display = nextPageUrl ? 'block' : 'none';
+                } else if (!loadMore) {
                     onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results found.</li>';
                 }
                 setTimeout(adjustTabContentHeight, 50);
             };
 
-            // --- Event Listeners for Online Search ---
-            onlineSearchBtn.addEventListener('click', handleOnlineSearch);
+            const searchNutritionix = async (query, loadMore) => {
+                if (!loadMore) {
+                    try {
+                        const searchResponse = await fetch(`https://trackapi.nutritionix.com/v2/search/instant?query=${encodeURIComponent(query)}`, {
+                            headers: { 'x-app-id': nutritionixAppId, 'x-app-key': nutritionixAppKey }
+                        });
+                        if (!searchResponse.ok) {
+                            throw new Error(`Nutritionix instant search failed: ${searchResponse.statusText}`);
+                        }
+                        const searchData = await searchResponse.json();
+                        nutritionixResultsCache = [...(searchData.common || []), ...(searchData.branded || [])];
+                    } catch (error) {
+                        console.error('Nutritionix API call failed:', error);
+                        nutritionixResultsCache = [];
+                        nextPageUrl = null;
+                        return [];
+                    }
+                }
+
+                if (nutritionixResultsCache.length === 0) {
+                    nextPageUrl = null;
+                    return [];
+                }
+
+                const itemsToProcess = nutritionixResultsCache.splice(0, 3);
+
+                try {
+                    const detailPromises = itemsToProcess.map(food => {
+                        return fetch(`https://trackapi.nutritionix.com/v2/natural/nutrients`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-app-id': nutritionixAppId,
+                                'x-app-key': nutritionixAppKey
+                            },
+                            body: JSON.stringify({ query: food.food_name })
+                        }).then(res => {
+                            if (res.ok) return res.json();
+                            console.error(`Failed to get details for ${food.food_name}`);
+                            return null;
+                        });
+                    });
+
+                    const detailResults = await Promise.all(detailPromises);
+
+                    const foodData = detailResults
+                        .filter(detail => detail && detail.foods && detail.foods.length > 0)
+                        .map(detail => {
+                            const food = detail.foods[0];
+                            return {
+                                food_name: food.food_name,
+                                serving_weight_grams: food.serving_weight_grams,
+                                nf_total_carbohydrate: food.nf_total_carbohydrate,
+                                nf_calories: food.nf_calories,
+                                nf_total_fat: food.nf_total_fat,
+                                nf_saturated_fat: food.nf_saturated_fat,
+                                nf_cholesterol: food.nf_cholesterol,
+                                nf_sodium: food.nf_sodium,
+                                nf_dietary_fiber: food.nf_dietary_fiber,
+                                nf_sugars: food.nf_sugars,
+                                nf_protein: food.nf_protein,
+                                nf_potassium: food.nf_potassium,
+                                nf_p: food.nf_p,
+                                photo: { thumb: food.photo?.thumb || null }
+                            };
+                        });
+
+                    nextPageUrl = nutritionixResultsCache.length > 0;
+                    return foodData;
+
+                } catch (error) {
+                    console.error('Failed to fetch nutrient details:', error);
+                    nextPageUrl = null;
+                    return [];
+                }
+            };
+
+            const searchEdamam = async (query, loadMore) => {
+                try {
+                    const url = nextPageUrl && loadMore ? nextPageUrl : `https://api.edamam.com/api/food-database/v2/parser?ingr=${encodeURIComponent(query)}&app_id=${edamamAppId}&app_key=${edamamAppKey}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Edamam search failed');
+                    const data = await response.json();
+                    nextPageUrl = data._links?.next?.href;
+                    return data.hints.slice(0, 3).map(item => {
+                        const { food } = item;
+                        const { nutrients } = food;
+                        return {
+                            food_name: food.label,
+                            serving_weight_grams: 100,
+                            nf_total_carbohydrate: nutrients.CHOCDF,
+                            nf_calories: nutrients.ENERC_KCAL,
+                            nf_total_fat: nutrients.FAT,
+                            nf_saturated_fat: nutrients.FASAT,
+                            nf_cholesterol: nutrients.CHOLE || 0,
+                            nf_sodium: nutrients.NA,
+                            nf_dietary_fiber: nutrients.FIBTG,
+                            nf_sugars: nutrients.SUGAR,
+                            nf_protein: nutrients.PROCNT,
+                            nf_potassium: nutrients.K || 0,
+                            nf_p: nutrients.P || 0,
+                            photo: { thumb: food.image || null }
+                        };
+                    });
+                } catch (error) {
+                    console.warn('Edamam API failed:', error.message);
+                    nextPageUrl = null;
+                    return [];
+                }
+            };
+
+            const searchOpenFoodFacts = async (query, loadMore) => {
+                try {
+                    const url = `${openFoodFactsBaseUrl}?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page=${edamamPage}&page_size=3`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Open Food Facts search failed');
+                    const data = await response.json();
+                    nextPageUrl = data.count > edamamPage * 3 ? true : null;
+                    if(nextPageUrl) edamamPage++;
+
+                    return data.products.map(product => {
+                        const servingSize = parseFloat(product.serving_size?.replace(/[^0-9.]/g, '')) || 0;
+                        const carbs100g = product.nutriments?.carbohydrates_100g || 0;
+                        return {
+                            food_name: product.product_name || product.generic_name || 'N/A',
+                            serving_weight_grams: servingSize,
+                            nf_total_carbohydrate: (servingSize > 0 && carbs100g > 0) ? (carbs100g / 100) * servingSize : 0,
+                            nf_calories: product.nutriments?.energy_kcal_100g || 0,
+                            nf_total_fat: product.nutriments?.fat_100g || 0,
+                            nf_saturated_fat: product.nutriments?.['saturated-fat_100g'] || 0,
+                            nf_cholesterol: product.nutriments?.cholesterol_100g || 0,
+                            nf_sodium: (product.nutriments?.sodium_100g || 0) * 1000,
+                            nf_dietary_fiber: product.nutriments?.fiber_100g || 0,
+                            nf_sugars: product.nutriments?.sugars_100g || 0,
+                            nf_protein: product.nutriments?.proteins_100g || 0,
+                            nf_potassium: (product.nutriments?.potassium_100g || 0) * 1000,
+                            nf_p: 0,
+                            photo: { thumb: product.image_small_url || product.image_url || null }
+                        };
+                    });
+                } catch (error) {
+                    console.error('Open Food Facts API failed:', error);
+                    nextPageUrl = null;
+                    return [];
+                }
+            };
+
+            const handleOnlineSearch = async (loadMore = false) => {
+                const query = onlineSearchInput.value.trim();
+                if (query.length < 2) {
+                    onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Please enter at least 2 characters.</li>';
+                    return;
+                }
+
+                if (!loadMore) {
+                    document.getElementById('apiStatusMessage').style.display = 'none';
+                    currentQuery = query;
+                    onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Searching...</li>';
+                    nextPageUrl = null;
+                    showMoreBtn.style.display = 'none';
+                    nutritionixPage = 1;
+                    edamamPage = 1;
+
+                    if (localStorage.getItem('forceOpenFoodFacts') === 'true') {
+                        currentApi = 'openfoodfacts';
+                    } else if (hasNutritionixCredentials()) {
+                        currentApi = 'nutritionix';
+                    } else if (hasEdamamCredentials()) {
+                        currentApi = 'edamam';
+                    } else {
+                        currentApi = 'openfoodfacts';
+                    }
+                }
+
+                let foodData = [];
+                if (loadMore) {
+                    switch (currentApi) {
+                        case 'nutritionix': foodData = await searchNutritionix(currentQuery, true); break;
+                        case 'edamam': foodData = await searchEdamam(currentQuery, true); break;
+                        case 'openfoodfacts': foodData = await searchOpenFoodFacts(currentQuery, true); break;
+                    }
+                } else {
+                    if (currentApi === 'nutritionix') {
+                        foodData = await searchNutritionix(currentQuery, false);
+                        if (foodData.length === 0) {
+                            onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results from Nutritionix. Trying next...</li>';
+                            currentApi = hasEdamamCredentials() ? 'edamam' : 'openfoodfacts';
+                        }
+                    }
+                    if (currentApi === 'edamam' && foodData.length === 0) {
+                        foodData = await searchEdamam(currentQuery, false);
+                        if (foodData.length === 0) {
+                            onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results from Edamam. Trying next...</li>';
+                            currentApi = 'openfoodfacts';
+                        }
+                    }
+                    if (currentApi === 'openfoodfacts' && foodData.length === 0) {
+                        foodData = await searchOpenFoodFacts(currentQuery, false);
+                    }
+                }
+
+                renderResults(foodData, loadMore);
+            };
+
+            onlineSearchBtn.addEventListener('click', () => handleOnlineSearch(false));
             onlineSearchInput.addEventListener('keypress', e => {
-                if (e.key === 'Enter') handleOnlineSearch();
+                if (e.key === 'Enter') handleOnlineSearch(false);
             });
+            showMoreBtn.addEventListener('click', () => handleOnlineSearch(true));
 
             const nutritionFactsModal = new bootstrap.Modal(document.getElementById('nutritionFactsModal'));
             const nutritionFactsModalTitle = document.getElementById('nutritionFactsModalTitle');
             const nutritionFactsModalBody = document.getElementById('nutritionFactsModalBody');
-
-            const searchTab = document.getElementById('search-tab');
-            const savedTab = document.getElementById('saved-tab');
             const tabContent = document.getElementById('myTabContent');
-            const searchPanel = document.getElementById('search-panel');
-            const savedPanel = document.getElementById('saved-panel');
 
             const adjustTabContentHeight = () => {
                 const activePane = tabContent.querySelector('.tab-pane.active');
-                if (activePane) {
-                    tabContent.style.height = (activePane.scrollHeight + 20) + 'px'; // Add 40px for extra space
-                }
+                if (activePane) tabContent.style.height = (activePane.scrollHeight + 20) + 'px';
             };
 
-            searchTab.addEventListener('shown.bs.tab', adjustTabContentHeight);
-            savedTab.addEventListener('shown.bs.tab', adjustTabContentHeight);
-
-            // Adjust height on initial load and resize
+            [document.getElementById('search-tab'), document.getElementById('saved-tab')].forEach(tab => tab.addEventListener('shown.bs.tab', adjustTabContentHeight));
             window.addEventListener('load', adjustTabContentHeight);
             window.addEventListener('resize', adjustTabContentHeight);
 
-            const observer = new MutationObserver(() => {
-                const activePane = tabContent.querySelector('.tab-pane.active');
-                if (activePane) {
-                    adjustTabContentHeight();
-                }
-            });
+            const observer = new MutationObserver(adjustTabContentHeight);
             observer.observe(onlineSearchResults, { childList: true, subtree: true });
             observer.observe(savedItemsList, { childList: true, subtree: true });
 
@@ -1037,24 +980,14 @@
                 const listItem = event.target.closest('.online-search-result-item');
 
                 if (button) {
-                    const carbs = button.getAttribute('data-carbs-per-100g');
-                    const serving = button.getAttribute('data-serving-grams');
-                    const name = button.getAttribute('data-name');
-
-                    if (carbs) {
-                        carbsPer100gInput.value = carbs;
-                        foodWeightInput.value = serving;
-                        labelInput.value = name;
-
-                        calculateBtn.click();
-                        window.scrollTo(0, 0);
-                    } else {
-                        alert('Carbohydrate data not available for this item.');
-                    }
+                    carbsPer100gInput.value = button.dataset.carbsPer100g;
+                    foodWeightInput.value = button.dataset.servingGrams;
+                    labelInput.value = button.dataset.name;
+                    calculateBtn.click();
+                    window.scrollTo(0, 0);
                 } else if (listItem) {
-                    const foodData = JSON.parse(listItem.getAttribute('data-food'));
+                    const foodData = JSON.parse(listItem.dataset.food);
                     nutritionFactsModalTitle.textContent = foodData.food_name || 'Nutrition Facts';
-
                     let detailsHtml = '';
                     if (foodData.photo && foodData.photo.thumb) {
                         detailsHtml += `<div class="text-center mb-3"><img src="${foodData.photo.thumb}" class="img-fluid rounded" alt="${foodData.food_name}" style="max-height: 200px;"></div>`;
@@ -1074,42 +1007,32 @@
                         { label: 'Potassium', value: foodData.nf_potassium, unit: 'mg' },
                         { label: 'Phosphorus', value: foodData.nf_p, unit: 'mg' }
                     ];
-
                     nutrients.forEach(nutrient => {
                         if (nutrient.value !== null && nutrient.value !== undefined) {
                             detailsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                                                <div class="fw-bold">${nutrient.label}</div>
-                                                <strong>${nutrient.value.toFixed(1)}${nutrient.unit}</strong>
-                                            </li>`;
+                                <strong>${nutrient.label}</strong>
+                                <span>${nutrient.value.toFixed(1)}${nutrient.unit || ''}</span>
+                            </li>`;
                         }
                     });
-
                     detailsHtml += '</ul>';
                     nutritionFactsModalBody.innerHTML = detailsHtml;
                     nutritionFactsModal.show();
                 }
             });
 
-            // --- Export/Import Saved Items ---
-            
-
-            // Export saved items as a .txt file (JSON format)
             exportBtn.addEventListener('click', () => {
                 const dataStr = JSON.stringify(savedItems, null, 2);
                 const blob = new Blob([dataStr], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
+                a.href = URL.createObjectURL(blob);
                 a.download = 'CarbCal_SavedItems.txt';
                 document.body.appendChild(a);
                 a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 0);
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
             });
 
-            // Import saved items from a .txt file (expects JSON)
             importInput.addEventListener('change', (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
@@ -1118,7 +1041,6 @@
                     try {
                         const imported = JSON.parse(e.target.result);
                         if (!Array.isArray(imported)) throw new Error('Invalid format');
-                        // Merge, avoiding duplicate labels (case-insensitive)
                         const existingLabels = new Set(savedItems.map(i => i.label.toLowerCase()));
                         let added = 0;
                         imported.forEach(item => {
@@ -1129,7 +1051,7 @@
                             }
                         });
                         if (added > 0) {
-                            localStorage.setItem('savedItems', JSON.stringify(savedItems));
+                            saveItems();
                             renderSavedItems();
                             alert(`Imported ${added} new item(s).`);
                         } else {
@@ -1138,10 +1060,12 @@
                     } catch (err) {
                         alert('Failed to import: Invalid file format.');
                     }
-                    importInput.value = ''; // Reset input so same file can be re-imported if needed
+                    importInput.value = '';
                 };
                 reader.readAsText(file);
             });
+
+            updateApiStatusMessage();
         });
     </script>
 </body>
