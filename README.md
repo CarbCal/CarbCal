@@ -31,7 +31,7 @@
 
 ## 🚀 How to Use
 
-You can access the live application at: [https://lucamurdoch.github.io/CarbCal/](https://lucamurdoch.github.io/CarbCal/)
+You can access the live application at: https://carbcal.github.io/CarbCal/
 
 If you prefer to run it locally:
 
