@@ -276,6 +276,8 @@
             border-top-left-radius: 1rem; /* Match parent card */
             border-top-right-radius: 1rem; /* Match parent card */
         }
+        /* Ensure muted text is readable in dark mode */
+        body.dark-mode .text-muted { color: #bbb !important; }
 
         body.dark-mode .tab-content {
             background-color: #222222; /* Darker background for tab content to match list items */
@@ -344,6 +346,33 @@
             border-radius: 0.5rem;
             overflow: hidden;
         }
+
+        /* Single-line marquee that scrolls and loops */
+        .meta-inline {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 100%;
+        }
+        .meta-inline .marquee__inner {
+            display: inline-flex;
+            gap: 2rem;
+            will-change: transform;
+            animation: none; /* enabled only when overflowing */
+        }
+        .meta-inline.is-overflowing .marquee__inner { animation: meta-marquee 12s linear infinite; }
+        .meta-inline:not(.is-overflowing) .marquee__inner > span[aria-hidden="true"] { display: none; }
+        .meta-inline .marquee__inner:hover { animation-play-state: paused; }
+        .meta-inline .marquee__inner > span { flex: 0 0 auto; }
+        @keyframes meta-marquee {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+
+        /* Let left column take remaining space in list items */
+        .list-item-left { flex: 1 1 auto; min-width: 0; }
+        .list-item-actions { flex: 0 0 auto; display: flex; align-items: center; gap: .25rem; }
+        .use-online-item-btn { flex: 0 0 auto; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -351,7 +380,7 @@
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1"><i class="bi bi-calculator"></i> Carb Calculator</span>
             <div class="ms-auto border rounded px-2 py-1 version-box">
-                <a href="update.html" class="navbar-text m-34" style="text-decoration: none; color: inherit;">Version 1.3.0 Pre-Release</a>
+                <a href="update.html" class="navbar-text m-34" style="text-decoration: none; color: inherit;">Version 1.3.0</a>
             </div>
         </div>
     </nav>
@@ -418,20 +447,13 @@
                             </div>
                         </div>
                         <div class="tab-pane fade" id="saved-panel" role="tabpanel" aria-labelledby="saved-tab">
-                            <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap mb-2">
-                                <button id="exportItemsBtn" class="btn btn-outline-secondary flex-fill mx-2" style="min-width:140px;max-width:200px;" title="Export Saved Items">
-                                    <i class="bi bi-download"></i> Export
-                                </button>
-                                <label for="importItemsInput" class="btn btn-outline-secondary flex-fill mx-2 mb-0" style="min-width:140px;max-width:200px;cursor:pointer;" title="Import Saved Items">
-                                    <i class="bi bi-upload"></i> Import
-                                    <input type="file" id="importItemsInput" accept=".txt" style="display:none;">
-                                </label>
-                                <button id="addCustomItemBtn" class="btn btn-outline-primary btn-main flex-fill mx-2" style="min-width:140px;max-width:200px;">
-                                    <i class="bi bi-plus-circle-fill"></i> Add Custom
-                                </button>
-                            </div>
                             <div class="mb-3">
-                                <input type="text" id="searchInput" class="form-control" placeholder="Search saved items...">
+                                <div class="input-group">
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Search saved items...">
+                                    <button id="addCustomItemBtn" class="btn btn-outline-primary btn-main" type="button" title="Add Custom" aria-label="Add Custom">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
                             </div>
                             <ul id="savedItemsList" class="list-group">
                             </ul>
@@ -532,8 +554,6 @@
             const onlineSearchBtn = document.getElementById('onlineSearchBtn');
             const onlineSearchResults = document.getElementById('onlineSearchResults');
             const showMoreBtn = document.getElementById('showMoreBtn');
-            const exportBtn = document.getElementById('exportItemsBtn');
-            const importInput = document.getElementById('importItemsInput');
 
             // Apply saved theme on load
             const applyTheme = (theme) => {
@@ -554,6 +574,9 @@
             window.addEventListener('storage', (event) => {
                 if (event.key === 'theme') {
                     applyTheme(event.newValue);
+                } else if (event.key === 'savedItems') {
+                    savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+                    renderSavedItems();
                 }
             });
 
@@ -584,20 +607,34 @@
                     li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
                     li.style.animationDelay = `${index * 0.1}s`;
                     li.innerHTML = `
-                        <div>
+                        <div class="list-item-left me-2">
                             <strong class="d-block">${item.label}</strong>
-                            <small class="text-muted">Serving: ${item.servingSize.toFixed(1)}g | Carbs: ${item.totalCarbs.toFixed(1)}g</small>
+                            <small class="text-muted meta-inline">
+                                <span class="marquee__inner">
+                                    <span>Serving: ${item.servingSize.toFixed(1)}g | Carbs In Serving: ${item.totalCarbs.toFixed(1)}g</span>
+                                    <span aria-hidden="true">Serving: ${item.servingSize.toFixed(1)}g | Carbs In Serving: ${item.totalCarbs.toFixed(1)}g</span>
+                                </span>
+                            </small>
                         </div>
-                        <div class="btn-group">
+                        <div class="btn-group list-item-actions">
                             <button class="btn btn-sm btn-outline-secondary use-btn"><i class="bi bi-arrow-up-right-square"></i> Use</button>
                             <button class="btn btn-sm btn-outline-danger remove-btn"><i class="bi bi-trash"></i></button>
                         </div>
                     `;
                     li.querySelector('.use-btn').addEventListener('click', () => {
-                        carbsPer100gInput.value = item.carbsPer100g.toFixed(2);
-                        foodWeightInput.value = item.servingSize.toFixed(1);
-                        labelInput.value = item.label;
-                        resultCard.style.maxHeight = '0px';
+                        const grams = parseFloat(item.servingSize) || 0;
+                        const total = parseFloat(item.totalCarbs) || 0;
+                        let cp100 = parseFloat(item.carbsPer100g);
+                        if (isNaN(cp100)) {
+                            cp100 = grams > 0 ? (total / grams) * 100 : 0;
+                        }
+
+                        carbsPer100gInput.value = Number(cp100).toFixed(2);
+                        foodWeightInput.value = Number(grams).toFixed(1);
+                        labelInput.value = item.label || '';
+
+                        // Trigger calculation and bring focus to the top, consistent with online results
+                        calculateBtn.click();
                         window.scrollTo(0, 0);
                     });
                     li.querySelector('.remove-btn').addEventListener('click', () => {
@@ -605,6 +642,14 @@
                         confirmRemoveModal.show();
                     });
                     savedItemsList.appendChild(li);
+                    // Enable marquee only when content overflows
+                    const meta = li.querySelector('.meta-inline');
+                    const inner = meta ? meta.querySelector('.marquee__inner') : null;
+                    const first = inner ? inner.querySelector('span:not([aria-hidden])') : null;
+                    if (meta && first) {
+                        if (first.scrollWidth > meta.clientWidth) meta.classList.add('is-overflowing');
+                        else meta.classList.remove('is-overflowing');
+                    }
                 });
             };
 
@@ -615,13 +660,31 @@
                 localStorage.setItem('savedItems', JSON.stringify(savedItems));
             };
 
+            const parseNumber = (val) => {
+                if (typeof val !== 'string') return 0;
+                // Normalize comma decimals and strip invalid characters
+                const normalized = val.replace(',', '.').replace(/[^0-9.\-]/g, '');
+                const num = parseFloat(normalized);
+                return isNaN(num) ? 0 : num;
+            };
+
             calculateBtn.addEventListener('click', () => {
-                const carbs = parseFloat(carbsPer100gInput.value) || 0;
-                const weight = parseFloat(foodWeightInput.value) || 0;
+                const carbs = parseNumber(carbsPer100gInput.value);
+                const weight = parseNumber(foodWeightInput.value);
                 const total = (carbs / 100) * weight;
                 totalCarbsEl.textContent = `${total.toFixed(1)} g`;
                 document.getElementById('result-container').style.maxHeight = '500px';
                 resultCard.classList.add('fade-in');
+            });
+
+            // Convenience: press Enter in either input to calculate
+            [carbsPer100gInput, foodWeightInput].forEach(el => {
+                el.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        calculateBtn.click();
+                    }
+                });
             });
 
             closeResultCard.addEventListener('click', () => {
@@ -630,8 +693,8 @@
             });
 
             addToListBtn.addEventListener('click', () => {
-                const carbs = parseFloat(carbsPer100gInput.value) || 0;
-                const weight = parseFloat(foodWeightInput.value) || 0;
+                const carbs = parseNumber(carbsPer100gInput.value);
+                const weight = parseNumber(foodWeightInput.value);
                 const totalCarbs = (carbs / 100) * weight;
                 const label = labelInput.value.trim();
                 const labelError = document.getElementById('labelError');
@@ -683,8 +746,8 @@
 
             saveCustomItemBtn.addEventListener('click', () => {
                 const label = customLabelInput.value.trim();
-                const servingSize = parseFloat(servingSizeInput.value) || 0;
-                const carbsInServing = parseFloat(carbsInServingInput.value) || 0;
+                const servingSize = parseNumber(servingSizeInput.value);
+                const carbsInServing = parseNumber(carbsInServingInput.value);
                 const customLabelError = document.getElementById('customLabelError');
                 const customNoLabelError = document.getElementById('customNoLabelError');
 
@@ -717,12 +780,9 @@
 
             const nutritionixAppId = localStorage.getItem('nutritionixAppId');
             const nutritionixAppKey = localStorage.getItem('nutritionixAppKey');
-            const edamamAppId = localStorage.getItem('edamamAppId');
-            const edamamAppKey = localStorage.getItem('edamamAppKey');
             const openFoodFactsBaseUrl = 'https://world.openfoodfacts.org/cgi/search.pl';
 
             const hasNutritionixCredentials = () => nutritionixAppId && nutritionixAppKey && !nutritionixAppId.includes('YOUR') && !nutritionixAppKey.includes('YOUR');
-            const hasEdamamCredentials = () => edamamAppId && edamamAppKey && !edamamAppId.includes('YOUR') && !edamamAppKey.includes('YOUR');
 
             const updateApiStatusMessage = () => {
                 const forceOpenFoodFacts = localStorage.getItem('forceOpenFoodFacts') === 'true';
@@ -748,18 +808,33 @@
                         li.style.animationDelay = `${index * 0.1}s`;
                         li.setAttribute('data-food', JSON.stringify(food));
                         li.innerHTML = `
-                            <div>
+                            <div class="list-item-left me-2">
                                 <strong class="d-block">${foodName}</strong>
-                                <small class="text-muted">Serving: ${servingGrams.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g</small>
+                                <small class="text-muted meta-inline">
+                                    <span class="marquee__inner">
+                                        <span>Serving: ${servingGrams.toFixed(1)}g | Carbs In Serving: ${totalCarbs.toFixed(1)}g</span>
+                                        <span aria-hidden="true">Serving: ${servingGrams.toFixed(1)}g | Carbs In Serving: ${totalCarbs.toFixed(1)}g</span>
+                                    </span>
+                                </small>
                             </div>
-                            <button class="btn btn-sm btn-outline-success use-online-item-btn"
-                                data-carbs-per-100g="${carbsPer100g.toFixed(2)}"
-                                data-serving-grams="${servingGrams.toFixed(1)}"
-                                data-name="${foodName}">
-                                <i class="bi bi-arrow-up-right-square"></i> Use
-                            </button>
+                            <div class="list-item-actions">
+                                <button class="btn btn-sm btn-outline-success use-online-item-btn"
+                                    data-carbs-per-100g="${carbsPer100g.toFixed(2)}"
+                                    data-serving-grams="${servingGrams.toFixed(1)}"
+                                    data-name="${foodName}">
+                                    <i class="bi bi-arrow-up-right-square"></i> Use
+                                </button>
+                            </div>
                         `;
                         onlineSearchResults.appendChild(li);
+                        // Enable marquee only when content overflows
+                        const meta = li.querySelector('.meta-inline');
+                        const inner = meta ? meta.querySelector('.marquee__inner') : null;
+                        const first = inner ? inner.querySelector('span:not([aria-hidden])') : null;
+                        if (meta && first) {
+                            if (first.scrollWidth > meta.clientWidth) meta.classList.add('is-overflowing');
+                            else meta.classList.remove('is-overflowing');
+                        }
                     });
                     showMoreBtn.style.display = nextPageUrl ? 'block' : 'none';
                 } else if (!loadMore) {
@@ -845,39 +920,7 @@
                 }
             };
 
-            const searchEdamam = async (query, loadMore) => {
-                try {
-                    const url = nextPageUrl && loadMore ? nextPageUrl : `https://api.edamam.com/api/food-database/v2/parser?ingr=${encodeURIComponent(query)}&app_id=${edamamAppId}&app_key=${edamamAppKey}`;
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error('Edamam search failed');
-                    const data = await response.json();
-                    nextPageUrl = data._links?.next?.href;
-                    return data.hints.slice(0, 3).map(item => {
-                        const { food } = item;
-                        const { nutrients } = food;
-                        return {
-                            food_name: food.label,
-                            serving_weight_grams: 100,
-                            nf_total_carbohydrate: nutrients.CHOCDF,
-                            nf_calories: nutrients.ENERC_KCAL,
-                            nf_total_fat: nutrients.FAT,
-                            nf_saturated_fat: nutrients.FASAT,
-                            nf_cholesterol: nutrients.CHOLE || 0,
-                            nf_sodium: nutrients.NA,
-                            nf_dietary_fiber: nutrients.FIBTG,
-                            nf_sugars: nutrients.SUGAR,
-                            nf_protein: nutrients.PROCNT,
-                            nf_potassium: nutrients.K || 0,
-                            nf_p: nutrients.P || 0,
-                            photo: { thumb: food.image || null }
-                        };
-                    });
-                } catch (error) {
-                    console.warn('Edamam API failed:', error.message);
-                    nextPageUrl = null;
-                    return [];
-                }
-            };
+            // Edamam integration removed
 
             const searchOpenFoodFacts = async (query, loadMore) => {
                 try {
@@ -931,12 +974,67 @@
                     nutritionixPage = 1;
                     edamamPage = 1;
 
+                    // Test hook: when searching for "test", show mock results without calling APIs
+                    if (query.toLowerCase() === 'test') {
+                        const mockResults = [
+                            {
+                                food_name: 'Test Bread',
+                                serving_weight_grams: 50,
+                                nf_total_carbohydrate: 25,
+                                nf_calories: 130,
+                                nf_total_fat: 2,
+                                nf_saturated_fat: 0.5,
+                                nf_cholesterol: 0,
+                                nf_sodium: 220,
+                                nf_dietary_fiber: 1.5,
+                                nf_sugars: 2.5,
+                                nf_protein: 4,
+                                nf_potassium: 80,
+                                nf_p: 50,
+                                photo: { thumb: 'Bread.png' }
+                            },
+                            {
+                                food_name: 'Test Pasta',
+                                serving_weight_grams: 100,
+                                nf_total_carbohydrate: 31,
+                                nf_calories: 157,
+                                nf_total_fat: 1.1,
+                                nf_saturated_fat: 0.2,
+                                nf_cholesterol: 0,
+                                nf_sodium: 6,
+                                nf_dietary_fiber: 1.8,
+                                nf_sugars: 0.6,
+                                nf_protein: 5.8,
+                                nf_potassium: 24,
+                                nf_p: 40,
+                                photo: { thumb: 'CarbCal.png' }
+                            },
+                            {
+                                food_name: 'Test Rice',
+                                serving_weight_grams: 150,
+                                nf_total_carbohydrate: 41,
+                                nf_calories: 185,
+                                nf_total_fat: 0.4,
+                                nf_saturated_fat: 0.1,
+                                nf_cholesterol: 0,
+                                nf_sodium: 1,
+                                nf_dietary_fiber: 0.6,
+                                nf_sugars: 0.1,
+                                nf_protein: 4.2,
+                                nf_potassium: 55,
+                                nf_p: 35,
+                                photo: { thumb: 'CarbCal.png' }
+                            }
+                        ];
+                        nextPageUrl = null;
+                        renderResults(mockResults, false);
+                        return;
+                    }
+
                     if (localStorage.getItem('forceOpenFoodFacts') === 'true') {
                         currentApi = 'openfoodfacts';
                     } else if (hasNutritionixCredentials()) {
                         currentApi = 'nutritionix';
-                    } else if (hasEdamamCredentials()) {
-                        currentApi = 'edamam';
                     } else {
                         currentApi = 'openfoodfacts';
                     }
@@ -946,21 +1044,13 @@
                 if (loadMore) {
                     switch (currentApi) {
                         case 'nutritionix': foodData = await searchNutritionix(currentQuery, true); break;
-                        case 'edamam': foodData = await searchEdamam(currentQuery, true); break;
                         case 'openfoodfacts': foodData = await searchOpenFoodFacts(currentQuery, true); break;
                     }
                 } else {
                     if (currentApi === 'nutritionix') {
                         foodData = await searchNutritionix(currentQuery, false);
                         if (foodData.length === 0) {
-                            onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results from Nutritionix. Trying next...</li>';
-                            currentApi = hasEdamamCredentials() ? 'edamam' : 'openfoodfacts';
-                        }
-                    }
-                    if (currentApi === 'edamam' && foodData.length === 0) {
-                        foodData = await searchEdamam(currentQuery, false);
-                        if (foodData.length === 0) {
-                            onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results from Edamam. Trying next...</li>';
+                            onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results from Nutritionix. Trying Open Food Facts...</li>';
                             currentApi = 'openfoodfacts';
                         }
                     }
@@ -987,12 +1077,22 @@
                 const activePane = tabContent.querySelector('.tab-pane.active');
                 if (activePane) tabContent.style.height = (activePane.scrollHeight + 20) + 'px';
             };
+            const updateMetaOverflow = () => {
+                document.querySelectorAll('.meta-inline').forEach(meta => {
+                    const inner = meta.querySelector('.marquee__inner');
+                    const first = inner ? inner.querySelector('span:not([aria-hidden])') : null;
+                    if (meta && first) {
+                        if (first.scrollWidth > meta.clientWidth) meta.classList.add('is-overflowing');
+                        else meta.classList.remove('is-overflowing');
+                    }
+                });
+            };
 
-            [document.getElementById('search-tab'), document.getElementById('saved-tab')].forEach(tab => tab.addEventListener('shown.bs.tab', adjustTabContentHeight));
-            window.addEventListener('load', adjustTabContentHeight);
-            window.addEventListener('resize', adjustTabContentHeight);
+            [document.getElementById('search-tab'), document.getElementById('saved-tab')].forEach(tab => tab.addEventListener('shown.bs.tab', () => { adjustTabContentHeight(); updateMetaOverflow(); }));
+            window.addEventListener('load', () => { adjustTabContentHeight(); updateMetaOverflow(); });
+            window.addEventListener('resize', () => { adjustTabContentHeight(); updateMetaOverflow(); });
 
-            const observer = new MutationObserver(adjustTabContentHeight);
+            const observer = new MutationObserver(() => { adjustTabContentHeight(); updateMetaOverflow(); });
             observer.observe(onlineSearchResults, { childList: true, subtree: true });
             observer.observe(savedItemsList, { childList: true, subtree: true });
 
@@ -1001,9 +1101,29 @@
                 const listItem = event.target.closest('.online-search-result-item');
 
                 if (button) {
-                    carbsPer100gInput.value = button.dataset.carbsPer100g;
-                    foodWeightInput.value = button.dataset.servingGrams;
-                    labelInput.value = button.dataset.name;
+                    // Prefer data-* attributes; if missing, compute from attached food payload
+                    let cp100 = button.dataset.carbsPer100g;
+                    let serve = button.dataset.servingGrams;
+                    let name = button.dataset.name;
+
+                    if (!cp100 || cp100 === 'undefined' || isNaN(parseFloat(cp100))) {
+                        try {
+                            const food = JSON.parse(listItem?.dataset?.food || '{}');
+                            const grams = parseFloat(food.serving_weight_grams) || 0;
+                            const total = parseFloat(food.nf_total_carbohydrate) || 0;
+                            cp100 = grams > 0 ? ((total / grams) * 100).toFixed(2) : '0.00';
+                            serve = grams ? grams.toFixed(1) : (serve || '100');
+                            name = name || (food.food_name || 'Item');
+                        } catch (_) {
+                            cp100 = '0.00';
+                            serve = serve || '100';
+                            name = name || 'Item';
+                        }
+                    }
+
+                    carbsPer100gInput.value = cp100;
+                    foodWeightInput.value = serve || '';
+                    labelInput.value = name || '';
                     calculateBtn.click();
                     window.scrollTo(0, 0);
                 } else if (listItem) {
@@ -1042,49 +1162,7 @@
                 }
             });
 
-            exportBtn.addEventListener('click', () => {
-                const dataStr = JSON.stringify(savedItems, null, 2);
-                const blob = new Blob([dataStr], { type: 'text/plain' });
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = 'CarbCal_SavedItems.txt';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(a.href);
-            });
-
-            importInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const imported = JSON.parse(e.target.result);
-                        if (!Array.isArray(imported)) throw new Error('Invalid format');
-                        const existingLabels = new Set(savedItems.map(i => i.label.toLowerCase()));
-                        let added = 0;
-                        imported.forEach(item => {
-                            if (item.label && !existingLabels.has(item.label.toLowerCase())) {
-                                savedItems.push(item);
-                                existingLabels.add(item.label.toLowerCase());
-                                added++;
-                            }
-                        });
-                        if (added > 0) {
-                            saveItems();
-                            renderSavedItems();
-                            alert(`Imported ${added} new item(s).`);
-                        } else {
-                            alert('No new items were imported.');
-                        }
-                    } catch (err) {
-                        alert('Failed to import: Invalid file format.');
-                    }
-                    importInput.value = '';
-                };
-                reader.readAsText(file);
-            });
+            // Export/Import moved to settings.html
 
             updateApiStatusMessage();
         });

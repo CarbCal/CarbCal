@@ -27,6 +27,18 @@
             background-attachment: fixed;
         }
 
+        /* Light mode overlay to match index.html */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: -1;
+        }
+
         .navbar {
             background-color: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
@@ -130,6 +142,7 @@
             border-top-left-radius: 0;
             border-top-right-radius: 0;
         }
+        body.dark-mode .text-muted { color: #bbb !important; }
 
         body.dark-mode .form-check-label {
             color: #e0e0e0 !important;
@@ -151,6 +164,11 @@
         body.dark-mode .form-control::placeholder {
             color: #bbb !important;
         }
+
+        /* Dark modal background */
+        body.dark-mode .modal-content { background-color: #222222; color: #f8f9fa; }
+        body.dark-mode .btn-close { filter: invert(1); }
+        .modal textarea { resize: none; }
 
         .form-check.form-switch {
             display: flex !important;
@@ -202,6 +220,27 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingSavedItems">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSavedItems" aria-expanded="false" aria-controls="collapseSavedItems">
+                        Saved Items
+                    </button>
+                </h2>
+                <div id="collapseSavedItems" class="accordion-collapse collapse" aria-labelledby="headingSavedItems" data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+                        <p class="mb-2">Export or import your saved items.</p>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button id="exportItemsBtn" class="btn btn-outline-secondary" title="Select items to export">
+                                <i class="bi bi-download"></i> Select Items to Export
+                            </button>
+                            <button id="importCodeBtn" class="btn btn-outline-secondary" title="Import via Code">
+                                <i class="bi bi-upload"></i> Import Code
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingOnlineSearch">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOnlineSearch" aria-expanded="false" aria-controls="collapseOnlineSearch">
@@ -223,14 +262,7 @@
                             <label for="nutritionixAppKey" class="form-label">Nutritionix App Key</label>
                             <input type="password" class="form-control" id="nutritionixAppKey" placeholder="Enter Nutritionix App Key">
                         </div>
-                        <div class="mb-3">
-                            <label for="edamamAppId" class="form-label">Edamam App ID</label>
-                            <input type="text" class="form-control" id="edamamAppId" placeholder="Enter Edamam App ID">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edamamAppKey" class="form-label">Edamam App Key</label>
-                            <input type="password" class="form-control" id="edamamAppKey" placeholder="Enter Edamam App Key">
-                        </div>
+                        
                         
                         <button id="saveApiKeys" class="btn btn-primary">Save API Keys</button>
                     </div>
@@ -266,7 +298,7 @@
 
                         <h5 class="mt-4">3. Online Search</h5>
                         <p>
-                            To search for food items online, navigate to the <strong>"Online Search" tab</strong>. Type your query into the <strong>search box</strong> and click the <strong>"Search" button</strong>. The app will first try to find results using the Nutritionix API. If that doesn't work, it will automatically try the Edamam API, and then the Open Food Facts API as a final fallback.
+                            To search for food items online, navigate to the <strong>"Online Search" tab</strong>. Type your query into the <strong>search box</strong> and click the <strong>"Search" button</strong>. The app will try to find results using the Nutritionix API when credentials are provided; otherwise it uses Open Food Facts.
                             Click on any search result in the list to see detailed nutrition facts in a pop-up window. Click the <strong>"Use" button</strong> next to a search result to automatically fill the calculator with its carbohydrate and serving information.
                         </p>
 
@@ -291,8 +323,6 @@
             const forceOpenFoodFactsToggle = document.getElementById('forceOpenFoodFactsToggle');
             const nutritionixAppIdInput = document.getElementById('nutritionixAppId');
             const nutritionixAppKeyInput = document.getElementById('nutritionixAppKey');
-            const edamamAppIdInput = document.getElementById('edamamAppId');
-            const edamamAppKeyInput = document.getElementById('edamamAppKey');
             
             const saveApiKeysButton = document.getElementById('saveApiKeys');
 
@@ -328,8 +358,6 @@
             // Load API keys
             nutritionixAppIdInput.value = localStorage.getItem('nutritionixAppId') || '';
             nutritionixAppKeyInput.value = localStorage.getItem('nutritionixAppKey') || '';
-            edamamAppIdInput.value = localStorage.getItem('edamamAppId') || '';
-            edamamAppKeyInput.value = localStorage.getItem('edamamAppKey') || '';
             
 
             // Event Listeners for toggles
@@ -347,11 +375,80 @@
             saveApiKeysButton.addEventListener('click', () => {
                 localStorage.setItem('nutritionixAppId', nutritionixAppIdInput.value);
                 localStorage.setItem('nutritionixAppKey', nutritionixAppKeyInput.value);
-                localStorage.setItem('edamamAppId', edamamAppIdInput.value);
-                localStorage.setItem('edamamAppKey', edamamAppKeyInput.value);
+                
                 
                 alert('API Keys saved!');
             });
+
+            // Export/Import Saved Items
+            const importItemsInput = document.getElementById('importItemsInput');
+            const exportItemsBtn = document.getElementById('exportItemsBtn');
+            const importCodeBtn = document.getElementById('importCodeBtn');
+
+            // Import via code modal
+            if (importCodeBtn) {
+                // Build modal once
+                const modalHtml = `
+                <div class="modal fade" id="importCodeModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Import via Code</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="text-muted">Paste the code you received (or raw JSON), then import.</p>
+                                <textarea id="importCodeText" class="form-control" rows="6" placeholder="Paste code here..."></textarea>
+                                <div id="importCodeError" class="text-danger mt-2" style="display:none;">Invalid code. Please check and try again.</div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="doImportCodeBtn" class="btn btn-primary">Import</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const importModalEl = document.getElementById('importCodeModal');
+                const importModal = new bootstrap.Modal(importModalEl);
+                const codeInput = () => document.getElementById('importCodeText');
+                const codeError = () => document.getElementById('importCodeError');
+
+                importCodeBtn.addEventListener('click', () => {
+                    codeInput().value = '';
+                    codeError().style.display = 'none';
+                    importModal.show();
+                });
+
+                const tryDecode = (str) => {
+                    const s = (str || '').trim();
+                    if (!s) throw new Error('empty');
+                    if (s.startsWith('[') || s.startsWith('{')) return JSON.parse(s);
+                    const b64 = s.replace(/-/g,'+').replace(/_/g,'/');
+                    const padLen = (4 - (b64.length % 4)) % 4;
+                    const padded = b64 + '='.repeat(padLen);
+                    const jsonStr = atob(padded);
+                    return JSON.parse(jsonStr);
+                };
+
+                document.getElementById('doImportCodeBtn').addEventListener('click', () => {
+                    try {
+                        const parsed = tryDecode(codeInput().value);
+                        if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('not-array');
+                        localStorage.setItem('importPreviewItems', JSON.stringify(parsed));
+                        importModal.hide();
+                        window.location.href = 'import.html';
+                    } catch (e) {
+                        codeError().style.display = 'block';
+                    }
+                });
+            }
+
+            if (exportItemsBtn) {
+                exportItemsBtn.addEventListener('click', () => {
+                    window.location.href = 'export.html';
+                });
+            }
 
             // Synchronize theme and API keys across tabs/windows
             window.addEventListener('storage', (event) => {
@@ -363,10 +460,6 @@
                     nutritionixAppIdInput.value = event.newValue || '';
                 } else if (event.key === 'nutritionixAppKey') {
                     nutritionixAppKeyInput.value = event.newValue || '';
-                } else if (event.key === 'edamamAppId') {
-                    edamamAppIdInput.value = event.newValue || '';
-                } else if (event.key === 'edamamAppKey') {
-                    edamamAppKeyInput.value = event.newValue || '';
                 }
             });
         });
