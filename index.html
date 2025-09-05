@@ -48,6 +48,27 @@
             background-color: rgba(255, 255, 255, 0.9);
         }
 
+        .btn-main {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+            color: #fff !important;
+        }
+
+        .btn-main:hover {
+            background-color: #0056b3 !important;
+            border-color: #0056b3 !important;
+        }
+
+        body.dark-mode .btn-main {
+            background-color: #0056b3 !important;
+            border-color: #004085 !important;
+        }
+
+        body.dark-mode .btn-main:hover {
+            background-color: #004085 !important;
+            border-color: #004085 !important;
+        }
+
         .btn-primary {
             background-color: #007bff;
             border: none;
@@ -255,6 +276,8 @@
             border-top-left-radius: 1rem; /* Match parent card */
             border-top-right-radius: 1rem; /* Match parent card */
         }
+        /* Ensure muted text is readable in dark mode */
+        body.dark-mode .text-muted { color: #bbb !important; }
 
         body.dark-mode .tab-content {
             background-color: #222222; /* Darker background for tab content to match list items */
@@ -323,6 +346,33 @@
             border-radius: 0.5rem;
             overflow: hidden;
         }
+
+        /* Single-line marquee that scrolls and loops */
+        .meta-inline {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 100%;
+        }
+        .meta-inline .marquee__inner {
+            display: inline-flex;
+            gap: 2rem;
+            will-change: transform;
+            animation: none; /* enabled only when overflowing */
+        }
+        .meta-inline.is-overflowing .marquee__inner { animation: meta-marquee 12s linear infinite; }
+        .meta-inline:not(.is-overflowing) .marquee__inner > span[aria-hidden="true"] { display: none; }
+        .meta-inline .marquee__inner:hover { animation-play-state: paused; }
+        .meta-inline .marquee__inner > span { flex: 0 0 auto; }
+        @keyframes meta-marquee {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+
+        /* Let left column take remaining space in list items */
+        .list-item-left { flex: 1 1 auto; min-width: 0; }
+        .list-item-actions { flex: 0 0 auto; display: flex; align-items: center; gap: .25rem; }
+        .use-online-item-btn { flex: 0 0 auto; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -330,7 +380,8 @@
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1"><i class="bi bi-calculator"></i> Carb Calculator</span>
             <div class="ms-auto border rounded px-2 py-1 version-box">
-                <a href="update.html" class="navbar-text m-34" style="text-decoration: none; color: inherit;">Version 1.2.2</a>
+
+                <a href="update.html" class="navbar-text m-34" style="text-decoration: none; color: inherit;">Version 1.3.0</a
             </div>
         </div>
     </nav>
@@ -368,7 +419,7 @@
                     </div>
                 </div>
 
-                <div id="search-card" class="card mt-4">
+                <div id="search-card" class="card mt-5">
                     <div class="card-header">
                         <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -387,19 +438,23 @@
                         <div class="tab-pane fade show active" id="search-panel" role="tabpanel" aria-labelledby="search-tab">
                             <div class="input-group">
                                 <input type="text" id="onlineSearchInput" class="form-control" placeholder="Search for a food...">
-                                <button id="onlineSearchBtn" class="btn btn-info" type="button">Search</button>
+                                <button id="onlineSearchBtn" class="btn btn-info btn-main" type="button">Search</button>
                             </div>
-                            <div class="alert alert-info mt-2" role="alert" id="apiStatusMessage" style="display: none;"></div>
+                            <div class="alert alert-info mt-2 small" role="alert" id="apiStatusMessage" style="display: none;"></div>
                             <ul id="onlineSearchResults" class="list-group mt-3">
                             </ul>
+                            <div class="d-flex justify-content-center">
+                                <button id="showMoreBtn" class="btn btn-outline-primary w-100 mt-1" style="display: none;">Show More</button>
+                            </div>
                         </div>
                         <div class="tab-pane fade" id="saved-panel" role="tabpanel" aria-labelledby="saved-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h3 class="h4 mb-0">Saved Items</h3>
-                                <button id="addCustomItemBtn" class="btn btn-outline-primary"><i class="bi bi-plus-circle-fill"></i> Add Custom</button>
-                            </div>
                             <div class="mb-3">
-                                <input type="text" id="searchInput" class="form-control" placeholder="Search saved items...">
+                                <div class="input-group">
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Search saved items...">
+                                    <button id="addCustomItemBtn" class="btn btn-outline-primary btn-main" type="button" title="Add Custom" aria-label="Add Custom">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
                             </div>
                             <ul id="savedItemsList" class="list-group">
                             </ul>
@@ -410,7 +465,7 @@
         </div>
     </div>
 
-    <a href="settings.html" class="btn btn-info btn-lg info-fab"><i class="bi bi-gear-fill"></i></a>
+    <a href="settings.html" class="btn btn-info btn-lg info-fab btn-main"><i class="bi bi-gear-fill"></i></a>
 
     <div class="modal fade" id="confirmRemoveModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -499,6 +554,7 @@
             const onlineSearchInput = document.getElementById('onlineSearchInput');
             const onlineSearchBtn = document.getElementById('onlineSearchBtn');
             const onlineSearchResults = document.getElementById('onlineSearchResults');
+            const showMoreBtn = document.getElementById('showMoreBtn');
 
             // Apply saved theme on load
             const applyTheme = (theme) => {
@@ -519,30 +575,19 @@
             window.addEventListener('storage', (event) => {
                 if (event.key === 'theme') {
                     applyTheme(event.newValue);
+                } else if (event.key === 'savedItems') {
+                    savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+                    renderSavedItems();
                 }
             });
-            
 
             let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
-
-            // Data migration for older items that may not have a servingSize property
-            let needsSave = false;
-            savedItems.forEach(item => {
-                if (item.servingSize === undefined && item.totalCarbs !== undefined && item.carbsPer100g !== undefined) {
-                    if (item.carbsPer100g > 0) {
-                        item.servingSize = (item.totalCarbs * 100) / item.carbsPer100g;
-                    } else {
-                        item.servingSize = 0;
-                    }
-                    needsSave = true;
-                }
-            });
-
-            if (needsSave) {
-                localStorage.setItem('savedItems', JSON.stringify(savedItems));
-            }
-
             let itemToRemove = null;
+            let currentQuery = '';
+            let nextPageUrl = null;
+            let currentApi = '';
+            let nutritionixPage = 1;
+            let edamamPage = 1;
 
             const renderSavedItems = () => {
                 const searchTerm = searchInput.value.toLowerCase();
@@ -552,11 +597,9 @@
 
                 savedItemsList.innerHTML = '';
                 if (filteredItems.length === 0) {
-                    if (savedItems.length === 0) {
-                        savedItemsList.innerHTML = '<li class="list-group-item text-center">You have no saved items.</li>';
-                    } else {
-                        savedItemsList.innerHTML = '<li class="list-group-item text-center">No items match your search.</li>';
-                    }
+                    savedItemsList.innerHTML = savedItems.length === 0 ?
+                        '<li class="list-group-item text-center">You have no saved items.</li>' :
+                        '<li class="list-group-item text-center">No items match your search.</li>';
                     return;
                 }
 
@@ -565,21 +608,34 @@
                     li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
                     li.style.animationDelay = `${index * 0.1}s`;
                     li.innerHTML = `
-                        <div>
+                        <div class="list-item-left me-2">
                             <strong class="d-block">${item.label}</strong>
-                            <small class="text-muted">Serving: ${item.servingSize.toFixed(1)}g | Carbs: ${item.totalCarbs.toFixed(1)}g</small>
+                            <small class="text-muted meta-inline">
+                                <span class="marquee__inner">
+                                    <span>Serving: ${item.servingSize.toFixed(1)}g | Carbs In Serving: ${item.totalCarbs.toFixed(1)}g</span>
+                                    <span aria-hidden="true">Serving: ${item.servingSize.toFixed(1)}g | Carbs In Serving: ${item.totalCarbs.toFixed(1)}g</span>
+                                </span>
+                            </small>
                         </div>
-                        <div class="btn-group">
+                        <div class="btn-group list-item-actions">
                             <button class="btn btn-sm btn-outline-secondary use-btn"><i class="bi bi-arrow-up-right-square"></i> Use</button>
                             <button class="btn btn-sm btn-outline-danger remove-btn"><i class="bi bi-trash"></i></button>
                         </div>
                     `;
                     li.querySelector('.use-btn').addEventListener('click', () => {
-                        carbsPer100gInput.value = item.carbsPer100g.toFixed(2);
-                        foodWeightInput.value = item.servingSize.toFixed(1);
-                        labelInput.value = item.label;
-                        const resultContainer = document.getElementById('result-container');
-                        resultContainer.style.maxHeight = '0px';
+                        const grams = parseFloat(item.servingSize) || 0;
+                        const total = parseFloat(item.totalCarbs) || 0;
+                        let cp100 = parseFloat(item.carbsPer100g);
+                        if (isNaN(cp100)) {
+                            cp100 = grams > 0 ? (total / grams) * 100 : 0;
+                        }
+
+                        carbsPer100gInput.value = Number(cp100).toFixed(2);
+                        foodWeightInput.value = Number(grams).toFixed(1);
+                        labelInput.value = item.label || '';
+
+                        // Trigger calculation and bring focus to the top, consistent with online results
+                        calculateBtn.click();
                         window.scrollTo(0, 0);
                     });
                     li.querySelector('.remove-btn').addEventListener('click', () => {
@@ -587,45 +643,64 @@
                         confirmRemoveModal.show();
                     });
                     savedItemsList.appendChild(li);
+                    // Enable marquee only when content overflows
+                    const meta = li.querySelector('.meta-inline');
+                    const inner = meta ? meta.querySelector('.marquee__inner') : null;
+                    const first = inner ? inner.querySelector('span:not([aria-hidden])') : null;
+                    if (meta && first) {
+                        if (first.scrollWidth > meta.clientWidth) meta.classList.add('is-overflowing');
+                        else meta.classList.remove('is-overflowing');
+                    }
                 });
             };
 
             searchInput.addEventListener('input', renderSavedItems);
-
             document.getElementById('saved-tab').addEventListener('shown.bs.tab', renderSavedItems);
 
             const saveItems = () => {
                 localStorage.setItem('savedItems', JSON.stringify(savedItems));
             };
 
+            const parseNumber = (val) => {
+                if (typeof val !== 'string') return 0;
+                // Normalize comma decimals and strip invalid characters
+                const normalized = val.replace(',', '.').replace(/[^0-9.\-]/g, '');
+                const num = parseFloat(normalized);
+                return isNaN(num) ? 0 : num;
+            };
+
             calculateBtn.addEventListener('click', () => {
-                const carbs = parseFloat(carbsPer100gInput.value) || 0;
-                const weight = parseFloat(foodWeightInput.value) || 0;
+                const carbs = parseNumber(carbsPer100gInput.value);
+                const weight = parseNumber(foodWeightInput.value);
                 const total = (carbs / 100) * weight;
                 totalCarbsEl.textContent = `${total.toFixed(1)} g`;
-
-                const resultContainer = document.getElementById('result-container');
-                const resultCard = document.getElementById('resultCard');
-                resultContainer.style.maxHeight = '500px'; // Set a large enough max-height
+                document.getElementById('result-container').style.maxHeight = '500px';
                 resultCard.classList.add('fade-in');
             });
 
+            // Convenience: press Enter in either input to calculate
+            [carbsPer100gInput, foodWeightInput].forEach(el => {
+                el.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        calculateBtn.click();
+                    }
+                });
+            });
+
             closeResultCard.addEventListener('click', () => {
-                const resultContainer = document.getElementById('result-container');
-                const resultCard = document.getElementById('resultCard');
                 resultCard.classList.remove('fade-in');
-                resultContainer.style.maxHeight = '0px';
+                document.getElementById('result-container').style.maxHeight = '0px';
             });
 
             addToListBtn.addEventListener('click', () => {
-                const carbs = parseFloat(carbsPer100gInput.value) || 0;
-                const weight = parseFloat(foodWeightInput.value) || 0;
+                const carbs = parseNumber(carbsPer100gInput.value);
+                const weight = parseNumber(foodWeightInput.value);
                 const totalCarbs = (carbs / 100) * weight;
-                const label = labelInput.value.trim(); // Get trimmed label
+                const label = labelInput.value.trim();
                 const labelError = document.getElementById('labelError');
                 const noLabelError = document.getElementById('noLabelError');
 
-                // Reset error messages
                 labelError.style.display = 'none';
                 noLabelError.style.display = 'none';
 
@@ -640,19 +715,16 @@
                 }
 
                 if (totalCarbs > 0) {
-                    const newItem = {
+                    savedItems.unshift({
                         id: Date.now(),
                         label,
                         totalCarbs,
                         carbsPer100g: carbs,
                         servingSize: weight
-                    };
-                    savedItems.unshift(newItem);
+                    });
                     saveItems();
                     renderSavedItems();
                     labelInput.value = '';
-                    labelError.style.display = 'none';
-                    noLabelError.style.display = 'none';
                 }
             });
 
@@ -667,9 +739,7 @@
             });
 
             addCustomItemBtn.addEventListener('click', () => {
-                customLabelInput.value = '';
-                servingSizeInput.value = '';
-                carbsInServingInput.value = '';
+                [customLabelInput, servingSizeInput, carbsInServingInput].forEach(i => i.value = '');
                 document.getElementById('customLabelError').style.display = 'none';
                 document.getElementById('customNoLabelError').style.display = 'none';
                 addCustomItemModal.show();
@@ -677,12 +747,11 @@
 
             saveCustomItemBtn.addEventListener('click', () => {
                 const label = customLabelInput.value.trim();
-                const servingSize = parseFloat(servingSizeInput.value) || 0;
-                const carbsInServing = parseFloat(carbsInServingInput.value) || 0;
+                const servingSize = parseNumber(servingSizeInput.value);
+                const carbsInServing = parseNumber(carbsInServingInput.value);
                 const customLabelError = document.getElementById('customLabelError');
                 const customNoLabelError = document.getElementById('customNoLabelError');
 
-                // Reset error messages
                 customLabelError.style.display = 'none';
                 customNoLabelError.style.display = 'none';
 
@@ -697,204 +766,36 @@
                 }
 
                 if (label && servingSize > 0 && carbsInServing > 0) {
-                    const carbsPer100g = (carbsInServing / servingSize) * 100;
-                    const newItem = {
+                    savedItems.unshift({
                         id: Date.now(),
                         label,
                         totalCarbs: carbsInServing,
-                        carbsPer100g,
+                        carbsPer100g: (carbsInServing / servingSize) * 100,
                         servingSize: servingSize
-                    };
-                    savedItems.unshift(newItem);
+                    });
                     saveItems();
                     renderSavedItems();
                     addCustomItemModal.hide();
-                    customLabelInput.value = '';
-                    servingSizeInput.value = '';
-                    carbsInServingInput.value = '';
-                    customLabelError.style.display = 'none';
-                    customNoLabelError.style.display = 'none';
                 }
             });
 
-
-            // --- Online Search Implementation (Nutritionix) ---
-            const nutritionixAppId = localStorage.getItem('nutritionixAppId') || 'YOUR_APP_ID';
-            const nutritionixAppKey = localStorage.getItem('nutritionixAppKey') || 'YOUR_APP_KEY';
-            
-
-            // Open Food Facts API Base URL
+            const nutritionixAppId = localStorage.getItem('nutritionixAppId');
+            const nutritionixAppKey = localStorage.getItem('nutritionixAppKey');
             const openFoodFactsBaseUrl = 'https://world.openfoodfacts.org/cgi/search.pl';
+
+            const hasNutritionixCredentials = () => nutritionixAppId && nutritionixAppKey && !nutritionixAppId.includes('YOUR') && !nutritionixAppKey.includes('YOUR');
 
             const updateApiStatusMessage = () => {
                 const forceOpenFoodFacts = localStorage.getItem('forceOpenFoodFacts') === 'true';
                 const apiStatusMessage = document.getElementById('apiStatusMessage');
+                apiStatusMessage.style.display = forceOpenFoodFacts ? 'block' : 'none';
                 if (forceOpenFoodFacts) {
                     apiStatusMessage.textContent = 'Force Open Food Facts API is active.';
-                    apiStatusMessage.style.display = 'block';
-                } else {
-                    apiStatusMessage.style.display = 'none';
                 }
             };
 
-            const handleOnlineSearch = async () => {
-                console.log('Force Open Food Facts API setting:', localStorage.getItem('forceOpenFoodFacts'));
-                const query = onlineSearchInput.value.trim();
-                const forceOpenFoodFacts = localStorage.getItem('forceOpenFoodFacts') === 'true';
-
-                if (query.toLowerCase() === 'test') {
-                    onlineSearchResults.innerHTML = '';
-                    for (let i = 1; i <= 5; i++) {
-                        const li = document.createElement('li');
-                        li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
-                        li.style.animationDelay = `${(i - 1) * 0.1}s`;
-                        const foodData = {
-                            food_name: `Test Item ${i}`,
-                            serving_weight_grams: 158.0 + (i * 5),
-                            nf_calories: 205.4 + (i * 10),
-                            nf_total_fat: 0.4 + (i * 0.1),
-                            nf_saturated_fat: 0.1 + (i * 0.05),
-                            nf_cholesterol: 0.0,
-                            nf_sodium: 1.6 + (i * 0.2),
-                            nf_total_carbohydrate: 44.5 + (i * 2),
-                            nf_dietary_fiber: 0.6 + (i * 0.1),
-                            nf_sugars: 0.1 + (i * 0.1),
-                            nf_protein: 4.3 + (i * 0.5),
-                            nf_potassium: 55.3 + (i * 3000),
-                            nf_p: 0 + (i*1),
-                            photo: { thumb: 'CarbCal.png' }
-                        };
-                        li.setAttribute('data-food', JSON.stringify(foodData));
-                        li.innerHTML = `
-                            <div>
-                                <strong class="d-block">${foodData.food_name}</strong>
-                                <small class="text-muted">
-                                    Serving: ${foodData.serving_weight_grams.toFixed(1)}g | Carbs: ${foodData.nf_total_carbohydrate.toFixed(1)}g
-                                </small>
-                            </div>
-                            <button class="btn btn-sm btn-outline-success use-online-item-btn"
-                                data-carbs-per-100g="${((foodData.nf_total_carbohydrate / foodData.serving_weight_grams) * 100).toFixed(2)}"
-                                data-serving-grams="${foodData.serving_weight_grams.toFixed(1)}"
-                                data-name="${foodData.food_name}">
-                                <i class="bi bi-arrow-up-right-square"></i> Use
-                            </button>
-                        `;
-                        onlineSearchResults.appendChild(li);
-                    }
-                    return;
-                }
-                if (query.length < 2) {
-                    onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Please enter at least 2 characters.</li>';
-                    return;
-                }
-
-                onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Searching...</li>';
-
-                let foodData = null;
-
-                if (!forceOpenFoodFacts) {
-                    // --- Try Nutritionix API first ---
-                    try {
-                        if (!nutritionixAppId || !nutritionixAppKey || nutritionixAppId.includes('YOUR') || nutritionixAppKey.includes('YOUR')) {
-                            throw new Error('Nutritionix API credentials are not configured.');
-                        }
-
-                        // Step 1: Get the initial list of foods from Nutritionix
-                        const searchResponse = await fetch(`https://trackapi.nutritionix.com/v2/search/instant?query=${encodeURIComponent(query)}`, {
-                            headers: {
-                                'x-app-id': nutritionixAppId,
-                                'x-app-key': nutritionixAppKey
-                            }
-                        });
-
-                        if (!searchResponse.ok) {
-                            throw new Error(`Nutritionix API Search Error: ${searchResponse.status} - ${searchResponse.statusText}`);
-                        }
-                        
-                        const searchData = await searchResponse.json();
-                        const results = [...(searchData.common || []), ...(searchData.branded || [])];
-
-                        if (results.length === 0) {
-                            throw new Error('No results from Nutritionix. Falling back to Open Food Facts.');
-                        }
-
-                        // Step 2: Fetch details for the top 5 results from Nutritionix
-                        const detailPromises = results.slice(0, 5).map(food => {
-                            return fetch(`https://trackapi.nutritionix.com/v2/natural/nutrients`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'x-app-id': nutritionixAppId,
-                                    'x-app-key': nutritionixAppKey
-                                },
-                                body: JSON.stringify({ query: food.food_name })
-                            }).then(res => {
-                                if (!res.ok) {
-                                    return res.text().then(text => { throw new Error(`Nutritionix detail API error: ${res.status} - ${text}`); });
-                                }
-                                return res.json();
-                            });
-                        });
-
-                        const detailResults = await Promise.all(detailPromises);
-                        foodData = detailResults.map(detail => detail.foods && detail.foods.length > 0 ? detail.foods[0] : null).filter(Boolean);
-
-                    } catch (nutritionixError) {
-                        console.warn('Nutritionix API failed:', nutritionixError.message, 'Attempting Open Food Facts...');
-                        onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Nutritionix failed. Trying Open Food Facts...</li>';
-                    }
-                }
-
-                // --- Fallback to Open Food Facts API (or if forced) ---
-                if (forceOpenFoodFacts || !foodData || foodData.length === 0) {
-                    try {
-                        const offSearchUrl = `${openFoodFactsBaseUrl}?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`;
-                        const offResponse = await fetch(offSearchUrl);
-
-                        if (!offResponse.ok) {
-                            throw new Error(`Open Food Facts API Search Error: ${offResponse.statusText}`);
-                        }
-
-                        const offData = await offResponse.json();
-                        const products = offData.products || [];
-
-                        if (products.length === 0) {
-                            throw new Error('No results found from Open Food Facts.');
-                        }
-
-                        foodData = products.slice(0, 5).map(product => {
-                            // Map Open Food Facts data to a Nutritionix-like structure
-                            const servingSize = product.serving_size ? parseFloat(product.serving_size.replace(/[^0-9.]/g, '')) : 0;
-                            const carbs100g = product.nutriments && product.nutriments.carbohydrates_100g ? parseFloat(product.nutriments.carbohydrates_100g) : 0;
-                            const totalCarbs = (servingSize > 0 && carbs100g > 0) ? (carbs100g / 100) * servingSize : 0;
-
-                            return {
-                                food_name: product.product_name || product.generic_name || 'N/A',
-                                serving_weight_grams: servingSize,
-                                nf_total_carbohydrate: totalCarbs,
-                                nf_calories: product.nutriments && product.nutriments.energy_kcal_100g ? parseFloat(product.nutriments.energy_kcal_100g) : 0,
-                                nf_total_fat: product.nutriments && product.nutriments.fat_100g ? parseFloat(product.nutriments.fat_100g) : 0,
-                                nf_saturated_fat: product.nutriments && product.nutriments['saturated-fat_100g'] ? parseFloat(product.nutriments['saturated-fat_100g']) : 0,
-                                nf_cholesterol: product.nutriments && product.nutriments.cholesterol_100g ? parseFloat(product.nutriments.cholesterol_100g) : 0,
-                                nf_sodium: product.nutriments && product.nutriments.sodium_100g ? parseFloat(product.nutriments.sodium_100g) * 1000 : 0, // Convert g to mg
-                                nf_dietary_fiber: product.nutriments && product.nutriments.fiber_100g ? parseFloat(product.nutriments.fiber_100g) : 0,
-                                nf_sugars: product.nutriments && product.nutriments.sugars_100g ? parseFloat(product.nutriments.sugars_100g) : 0,
-                                nf_protein: product.nutriments && product.nutriments.proteins_100g ? parseFloat(product.nutriments.proteins_100g) : 0,
-                                nf_potassium: product.nutriments && product.nutriments.potassium_100g ? parseFloat(product.nutriments.potassium_100g) * 1000 : 0, // Convert g to mg
-                                nf_p: 0, // Open Food Facts doesn't consistently provide phosphorus
-                                photo: { thumb: product.image_small_url || product.image_url || null } // Use available image URLs
-                            };
-                        });
-
-                    } catch (offError) {
-                        console.error('Open Food Facts API failed:', offError);
-                        onlineSearchResults.innerHTML = '<li class="list-group-item text-danger">Search failed for both APIs. Please try again.</li>';
-                        return;
-                    }
-                }
-
-                // --- Render Results (common for both APIs) ---
-                onlineSearchResults.innerHTML = ''; // Clear the list before adding new results
+            const renderResults = (foodData, loadMore = false) => {
+                if (!loadMore) onlineSearchResults.innerHTML = '';
 
                 if (foodData && foodData.length > 0) {
                     foodData.forEach((food, index) => {
@@ -908,63 +809,291 @@
                         li.style.animationDelay = `${index * 0.1}s`;
                         li.setAttribute('data-food', JSON.stringify(food));
                         li.innerHTML = `
-                            <div>
+                            <div class="list-item-left me-2">
                                 <strong class="d-block">${foodName}</strong>
-                                <small class="text-muted">
-                                    Serving: ${servingGrams.toFixed(1)}g | Carbs: ${totalCarbs.toFixed(1)}g
+                                <small class="text-muted meta-inline">
+                                    <span class="marquee__inner">
+                                        <span>Serving: ${servingGrams.toFixed(1)}g | Carbs In Serving: ${totalCarbs.toFixed(1)}g</span>
+                                        <span aria-hidden="true">Serving: ${servingGrams.toFixed(1)}g | Carbs In Serving: ${totalCarbs.toFixed(1)}g</span>
+                                    </span>
                                 </small>
                             </div>
-                            <button class="btn btn-sm btn-outline-success use-online-item-btn"
-                                data-carbs-per-100g="${carbsPer100g.toFixed(2)}"
-                                data-serving-grams="${servingGrams.toFixed(1)}"
-                                data-name="${foodName}">
-                                <i class="bi bi-arrow-up-right-square"></i> Use
-                            </button>
+                            <div class="list-item-actions">
+                                <button class="btn btn-sm btn-outline-success use-online-item-btn"
+                                    data-carbs-per-100g="${carbsPer100g.toFixed(2)}"
+                                    data-serving-grams="${servingGrams.toFixed(1)}"
+                                    data-name="${foodName}">
+                                    <i class="bi bi-arrow-up-right-square"></i> Use
+                                </button>
+                            </div>
                         `;
                         onlineSearchResults.appendChild(li);
+                        // Enable marquee only when content overflows
+                        const meta = li.querySelector('.meta-inline');
+                        const inner = meta ? meta.querySelector('.marquee__inner') : null;
+                        const first = inner ? inner.querySelector('span:not([aria-hidden])') : null;
+                        if (meta && first) {
+                            if (first.scrollWidth > meta.clientWidth) meta.classList.add('is-overflowing');
+                            else meta.classList.remove('is-overflowing');
+                        }
                     });
-                } else {
+                    showMoreBtn.style.display = nextPageUrl ? 'block' : 'none';
+                } else if (!loadMore) {
                     onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results found.</li>';
                 }
                 setTimeout(adjustTabContentHeight, 50);
             };
 
-            // --- Event Listeners for Online Search ---
-            onlineSearchBtn.addEventListener('click', handleOnlineSearch);
+            const searchNutritionix = async (query, loadMore) => {
+                if (!loadMore) {
+                    try {
+                        const searchResponse = await fetch(`https://trackapi.nutritionix.com/v2/search/instant?query=${encodeURIComponent(query)}`, {
+                            headers: { 'x-app-id': nutritionixAppId, 'x-app-key': nutritionixAppKey }
+                        });
+                        if (!searchResponse.ok) {
+                            throw new Error(`Nutritionix instant search failed: ${searchResponse.statusText}`);
+                        }
+                        const searchData = await searchResponse.json();
+                        nutritionixResultsCache = [...(searchData.common || []), ...(searchData.branded || [])];
+                    } catch (error) {
+                        console.error('Nutritionix API call failed:', error);
+                        nutritionixResultsCache = [];
+                        nextPageUrl = null;
+                        return [];
+                    }
+                }
+
+                if (nutritionixResultsCache.length === 0) {
+                    nextPageUrl = null;
+                    return [];
+                }
+
+                const itemsToProcess = nutritionixResultsCache.splice(0, 3);
+
+                try {
+                    const detailPromises = itemsToProcess.map(food => {
+                        return fetch(`https://trackapi.nutritionix.com/v2/natural/nutrients`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-app-id': nutritionixAppId,
+                                'x-app-key': nutritionixAppKey
+                            },
+                            body: JSON.stringify({ query: food.food_name })
+                        }).then(res => {
+                            if (res.ok) return res.json();
+                            console.error(`Failed to get details for ${food.food_name}`);
+                            return null;
+                        });
+                    });
+
+                    const detailResults = await Promise.all(detailPromises);
+
+                    const foodData = detailResults
+                        .filter(detail => detail && detail.foods && detail.foods.length > 0)
+                        .map(detail => {
+                            const food = detail.foods[0];
+                            return {
+                                food_name: food.food_name,
+                                serving_weight_grams: food.serving_weight_grams,
+                                nf_total_carbohydrate: food.nf_total_carbohydrate,
+                                nf_calories: food.nf_calories,
+                                nf_total_fat: food.nf_total_fat,
+                                nf_saturated_fat: food.nf_saturated_fat,
+                                nf_cholesterol: food.nf_cholesterol,
+                                nf_sodium: food.nf_sodium,
+                                nf_dietary_fiber: food.nf_dietary_fiber,
+                                nf_sugars: food.nf_sugars,
+                                nf_protein: food.nf_protein,
+                                nf_potassium: food.nf_potassium,
+                                nf_p: food.nf_p,
+                                photo: { thumb: food.photo?.thumb || null }
+                            };
+                        });
+
+                    nextPageUrl = nutritionixResultsCache.length > 0;
+                    return foodData;
+
+                } catch (error) {
+                    console.error('Failed to fetch nutrient details:', error);
+                    nextPageUrl = null;
+                    return [];
+                }
+            };
+
+            // Edamam integration removed
+
+            const searchOpenFoodFacts = async (query, loadMore) => {
+                try {
+                    const url = `${openFoodFactsBaseUrl}?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page=${edamamPage}&page_size=3`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Open Food Facts search failed');
+                    const data = await response.json();
+                    nextPageUrl = data.count > edamamPage * 3 ? true : null;
+                    if(nextPageUrl) edamamPage++;
+
+                    return data.products.map(product => {
+                        const servingSize = parseFloat(product.serving_size?.replace(/[^0-9.]/g, '')) || 0;
+                        const carbs100g = product.nutriments?.carbohydrates_100g || 0;
+                        return {
+                            food_name: product.product_name || product.generic_name || 'N/A',
+                            serving_weight_grams: servingSize,
+                            nf_total_carbohydrate: (servingSize > 0 && carbs100g > 0) ? (carbs100g / 100) * servingSize : 0,
+                            nf_calories: product.nutriments?.energy_kcal_100g || 0,
+                            nf_total_fat: product.nutriments?.fat_100g || 0,
+                            nf_saturated_fat: product.nutriments?.['saturated-fat_100g'] || 0,
+                            nf_cholesterol: product.nutriments?.cholesterol_100g || 0,
+                            nf_sodium: (product.nutriments?.sodium_100g || 0) * 1000,
+                            nf_dietary_fiber: product.nutriments?.fiber_100g || 0,
+                            nf_sugars: product.nutriments?.sugars_100g || 0,
+                            nf_protein: product.nutriments?.proteins_100g || 0,
+                            nf_potassium: (product.nutriments?.potassium_100g || 0) * 1000,
+                            nf_p: 0,
+                            photo: { thumb: product.image_small_url || product.image_url || null }
+                        };
+                    });
+                } catch (error) {
+                    console.error('Open Food Facts API failed:', error);
+                    nextPageUrl = null;
+                    return [];
+                }
+            };
+
+            const handleOnlineSearch = async (loadMore = false) => {
+                const query = onlineSearchInput.value.trim();
+                if (query.length < 2) {
+                    onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Please enter at least 2 characters.</li>';
+                    return;
+                }
+
+                if (!loadMore) {
+                    document.getElementById('apiStatusMessage').style.display = 'none';
+                    currentQuery = query;
+                    onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">Searching...</li>';
+                    nextPageUrl = null;
+                    showMoreBtn.style.display = 'none';
+                    nutritionixPage = 1;
+                    edamamPage = 1;
+
+                    // Test hook: when searching for "test", show mock results without calling APIs
+                    if (query.toLowerCase() === 'test') {
+                        const mockResults = [
+                            {
+                                food_name: 'Test Bread',
+                                serving_weight_grams: 50,
+                                nf_total_carbohydrate: 25,
+                                nf_calories: 130,
+                                nf_total_fat: 2,
+                                nf_saturated_fat: 0.5,
+                                nf_cholesterol: 0,
+                                nf_sodium: 220,
+                                nf_dietary_fiber: 1.5,
+                                nf_sugars: 2.5,
+                                nf_protein: 4,
+                                nf_potassium: 80,
+                                nf_p: 50,
+                                photo: { thumb: 'Bread.png' }
+                            },
+                            {
+                                food_name: 'Test Pasta',
+                                serving_weight_grams: 100,
+                                nf_total_carbohydrate: 31,
+                                nf_calories: 157,
+                                nf_total_fat: 1.1,
+                                nf_saturated_fat: 0.2,
+                                nf_cholesterol: 0,
+                                nf_sodium: 6,
+                                nf_dietary_fiber: 1.8,
+                                nf_sugars: 0.6,
+                                nf_protein: 5.8,
+                                nf_potassium: 24,
+                                nf_p: 40,
+                                photo: { thumb: 'CarbCal.png' }
+                            },
+                            {
+                                food_name: 'Test Rice',
+                                serving_weight_grams: 150,
+                                nf_total_carbohydrate: 41,
+                                nf_calories: 185,
+                                nf_total_fat: 0.4,
+                                nf_saturated_fat: 0.1,
+                                nf_cholesterol: 0,
+                                nf_sodium: 1,
+                                nf_dietary_fiber: 0.6,
+                                nf_sugars: 0.1,
+                                nf_protein: 4.2,
+                                nf_potassium: 55,
+                                nf_p: 35,
+                                photo: { thumb: 'CarbCal.png' }
+                            }
+                        ];
+                        nextPageUrl = null;
+                        renderResults(mockResults, false);
+                        return;
+                    }
+
+                    if (localStorage.getItem('forceOpenFoodFacts') === 'true') {
+                        currentApi = 'openfoodfacts';
+                    } else if (hasNutritionixCredentials()) {
+                        currentApi = 'nutritionix';
+                    } else {
+                        currentApi = 'openfoodfacts';
+                    }
+                }
+
+                let foodData = [];
+                if (loadMore) {
+                    switch (currentApi) {
+                        case 'nutritionix': foodData = await searchNutritionix(currentQuery, true); break;
+                        case 'openfoodfacts': foodData = await searchOpenFoodFacts(currentQuery, true); break;
+                    }
+                } else {
+                    if (currentApi === 'nutritionix') {
+                        foodData = await searchNutritionix(currentQuery, false);
+                        if (foodData.length === 0) {
+                            onlineSearchResults.innerHTML = '<li class="list-group-item text-muted">No results from Nutritionix. Trying Open Food Facts...</li>';
+                            currentApi = 'openfoodfacts';
+                        }
+                    }
+                    if (currentApi === 'openfoodfacts' && foodData.length === 0) {
+                        foodData = await searchOpenFoodFacts(currentQuery, false);
+                    }
+                }
+
+                renderResults(foodData, loadMore);
+            };
+
+            onlineSearchBtn.addEventListener('click', () => handleOnlineSearch(false));
             onlineSearchInput.addEventListener('keypress', e => {
-                if (e.key === 'Enter') handleOnlineSearch();
+                if (e.key === 'Enter') handleOnlineSearch(false);
             });
+            showMoreBtn.addEventListener('click', () => handleOnlineSearch(true));
 
             const nutritionFactsModal = new bootstrap.Modal(document.getElementById('nutritionFactsModal'));
             const nutritionFactsModalTitle = document.getElementById('nutritionFactsModalTitle');
             const nutritionFactsModalBody = document.getElementById('nutritionFactsModalBody');
-
-            const searchTab = document.getElementById('search-tab');
-            const savedTab = document.getElementById('saved-tab');
             const tabContent = document.getElementById('myTabContent');
-            const searchPanel = document.getElementById('search-panel');
-            const savedPanel = document.getElementById('saved-panel');
 
             const adjustTabContentHeight = () => {
                 const activePane = tabContent.querySelector('.tab-pane.active');
-                if (activePane) {
-                    tabContent.style.height = (activePane.scrollHeight + 20) + 'px'; // Add 40px for extra space
-                }
+                if (activePane) tabContent.style.height = (activePane.scrollHeight + 20) + 'px';
+            };
+            const updateMetaOverflow = () => {
+                document.querySelectorAll('.meta-inline').forEach(meta => {
+                    const inner = meta.querySelector('.marquee__inner');
+                    const first = inner ? inner.querySelector('span:not([aria-hidden])') : null;
+                    if (meta && first) {
+                        if (first.scrollWidth > meta.clientWidth) meta.classList.add('is-overflowing');
+                        else meta.classList.remove('is-overflowing');
+                    }
+                });
             };
 
-            searchTab.addEventListener('shown.bs.tab', adjustTabContentHeight);
-            savedTab.addEventListener('shown.bs.tab', adjustTabContentHeight);
+            [document.getElementById('search-tab'), document.getElementById('saved-tab')].forEach(tab => tab.addEventListener('shown.bs.tab', () => { adjustTabContentHeight(); updateMetaOverflow(); }));
+            window.addEventListener('load', () => { adjustTabContentHeight(); updateMetaOverflow(); });
+            window.addEventListener('resize', () => { adjustTabContentHeight(); updateMetaOverflow(); });
 
-            // Adjust height on initial load and resize
-            window.addEventListener('load', adjustTabContentHeight);
-            window.addEventListener('resize', adjustTabContentHeight);
-
-            const observer = new MutationObserver(() => {
-                const activePane = tabContent.querySelector('.tab-pane.active');
-                if (activePane) {
-                    adjustTabContentHeight();
-                }
-            });
+            const observer = new MutationObserver(() => { adjustTabContentHeight(); updateMetaOverflow(); });
             observer.observe(onlineSearchResults, { childList: true, subtree: true });
             observer.observe(savedItemsList, { childList: true, subtree: true });
 
@@ -973,24 +1102,34 @@
                 const listItem = event.target.closest('.online-search-result-item');
 
                 if (button) {
-                    const carbs = button.getAttribute('data-carbs-per-100g');
-                    const serving = button.getAttribute('data-serving-grams');
-                    const name = button.getAttribute('data-name');
+                    // Prefer data-* attributes; if missing, compute from attached food payload
+                    let cp100 = button.dataset.carbsPer100g;
+                    let serve = button.dataset.servingGrams;
+                    let name = button.dataset.name;
 
-                    if (carbs) {
-                        carbsPer100gInput.value = carbs;
-                        foodWeightInput.value = serving;
-                        labelInput.value = name;
-
-                        calculateBtn.click();
-                        window.scrollTo(0, 0);
-                    } else {
-                        alert('Carbohydrate data not available for this item.');
+                    if (!cp100 || cp100 === 'undefined' || isNaN(parseFloat(cp100))) {
+                        try {
+                            const food = JSON.parse(listItem?.dataset?.food || '{}');
+                            const grams = parseFloat(food.serving_weight_grams) || 0;
+                            const total = parseFloat(food.nf_total_carbohydrate) || 0;
+                            cp100 = grams > 0 ? ((total / grams) * 100).toFixed(2) : '0.00';
+                            serve = grams ? grams.toFixed(1) : (serve || '100');
+                            name = name || (food.food_name || 'Item');
+                        } catch (_) {
+                            cp100 = '0.00';
+                            serve = serve || '100';
+                            name = name || 'Item';
+                        }
                     }
-                } else if (listItem) {
-                    const foodData = JSON.parse(listItem.getAttribute('data-food'));
-                    nutritionFactsModalTitle.textContent = foodData.food_name || 'Nutrition Facts';
 
+                    carbsPer100gInput.value = cp100;
+                    foodWeightInput.value = serve || '';
+                    labelInput.value = name || '';
+                    calculateBtn.click();
+                    window.scrollTo(0, 0);
+                } else if (listItem) {
+                    const foodData = JSON.parse(listItem.dataset.food);
+                    nutritionFactsModalTitle.textContent = foodData.food_name || 'Nutrition Facts';
                     let detailsHtml = '';
                     if (foodData.photo && foodData.photo.thumb) {
                         detailsHtml += `<div class="text-center mb-3"><img src="${foodData.photo.thumb}" class="img-fluid rounded" alt="${foodData.food_name}" style="max-height: 200px;"></div>`;
@@ -1010,23 +1149,24 @@
                         { label: 'Potassium', value: foodData.nf_potassium, unit: 'mg' },
                         { label: 'Phosphorus', value: foodData.nf_p, unit: 'mg' }
                     ];
-
                     nutrients.forEach(nutrient => {
                         if (nutrient.value !== null && nutrient.value !== undefined) {
                             detailsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                                                <div class="fw-bold">${nutrient.label}</div>
-                                                <strong>${nutrient.value.toFixed(1)}${nutrient.unit}</strong>
-                                            </li>`;
+                                <strong>${nutrient.label}</strong>
+                                <span>${nutrient.value.toFixed(1)}${nutrient.unit || ''}</span>
+                            </li>`;
                         }
                     });
-
                     detailsHtml += '</ul>';
                     nutritionFactsModalBody.innerHTML = detailsHtml;
                     nutritionFactsModal.show();
                 }
             });
+
+            // Export/Import moved to settings.html
+
+            updateApiStatusMessage();
         });
     </script>
 </body>
 </html>
-

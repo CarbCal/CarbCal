@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Updates</title>
+    <link rel="icon" type="image/png" href="CarbCal.png">
+    <!-- Apple Touch Icon for Home Screen -->
+    <link rel="apple-touch-icon" href="CarbCal.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="CarbCal">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
@@ -13,6 +19,22 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
             color: #212529;
+            background-image: url('Bread.png');         /* Added for background image */
+            background-size: cover;                     /* Cover the viewport */
+            background-position: center;                /* Center the image */
+            background-attachment: fixed;               /* Fixed background */
+        }
+
+        /* Light mode overlay to match index.html */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: -1;
         }
         .navbar {
             box-shadow: 0 2px 4px rgba(0,0,0,.1);
@@ -33,13 +55,24 @@
 
         /* Dark Mode Styles */
         body.dark-mode {
-            background-color: #2d2d2d; /* Dark background for body */
-            color: #f8f9fa; /* Light text for body */
+            background-color: #2d2d2d !important;
+            color: #f8f9fa !important;
+        }
+
+        body.dark-mode::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: -1;
         }
 
         body.dark-mode .navbar {
-            background-color: #2d2d2d !important; /* Darker navbar */
-            color: #f8f9fa !important; /* Light text for navbar */
+            background-color: #2d2d2d !important;
+            color: #f8f9fa !important;
             box-shadow: 0 2px 4px rgba(0,0,0,.3);
         }
 
@@ -48,26 +81,156 @@
         }
 
         body.dark-mode .card {
-            background-color: #2d2d2d !important; /* Dark background for cards */
-            color: #f8f9fa; /* Light text for cards */
+            background-color: #2d2d2d !important;
+            color: #f8f9fa;
             box-shadow: 0 4px 6px rgba(0,0,0,.3);
-            border: 1px solid rgba(255, 255, 255, 0.2); /* White border with transparency */
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         body.dark-mode .card-body {
-            background-color: #222222 !important; /* Darker inside for card body */
+            background-color: #222222 !important;
             border-radius: 1rem; /* Maintain rounded corners for all sides */
         }
+        body.dark-mode .text-muted { color: #bbb !important; }
     </style>
 </head>
 <body>
-    <nav class="navbar">
+    <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
             <a href="index.html" class="navbar-brand mb-0 h1"><i class="bi bi-arrow-left"></i> Back</a>
         </div>
     </nav>
 
     <div class="container my-4">
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="mt-2">Version 1.3 Updates:</h3>
+                <p class="text-muted">This release focuses on reliability, phone usability, and simplifying online search and data management. Below is a detailed walkthrough of what changed and why.</p>
+
+                <h5 class="mt-3">New In This Pre-Release</h5>
+                <ul>
+                    <li><strong>Shareable Export Code:</strong> Export now generates a compact, URL‑safe code (looks like random characters) shown in a popup with a Copy button. It’s easy to paste into chats and safe to share.</li>
+                    <li><strong>Import via Code:</strong> From Settings → Saved Items, choose <em>Import Code</em> to paste a code (or raw JSON). It decodes automatically and opens the selection page so you can pick items to add.</li>
+                    <li><strong>Import/Export polish on phones:</strong> Primary buttons stick to the bottom for thumb reach; modal text boxes are non‑resizable; close (X) icons are visible in dark mode; text inputs in modals use dark styling.</li>
+                    <li><strong>Saved Items quick add:</strong> The <em>Add Custom</em> action is now a simple “+” button embedded at the end of the Saved Items search field.</li>
+                    <li><strong>Result row UX:</strong> The “Serving | Carbs In Serving” line only scrolls when it overflows and leaves more room for buttons.</li>
+                </ul>
+
+                <h5 class="mt-3">Consistent Light Background</h5>
+                <ul>
+                    <li><strong>Unified visual treatment:</strong> All pages now share the same Bread.png background with a soft white overlay in light mode for readability.</li>
+                    <li><strong>Pages updated:</strong> index, settings, update, import selection, and export selection.</li>
+                </ul>
+
+                <h5 class="mt-3">Updates Page Navbar</h5>
+                <ul>
+                    <li><strong>Fixed visual contrast:</strong> The Updates page navbar now uses Bootstrap's light styling to match the rest of the app and remain readable.</li>
+                </ul>
+
+                <h5 class="mt-3">Import/Export Redesign</h5>
+                <ul>
+                    <li><strong>Moved to Settings:</strong> Import and Export controls live under Settings → Saved Items, keeping the main screen focused on calculation and search.</li>
+                    <li><strong>New selection pages:</strong>
+                        <ul>
+                            <li><strong>import.html:</strong> Preview items from a file, tick selections, <em>Select All / Deselect All</em>, and import only what you want. Duplicate labels (case-insensitive) are skipped automatically.</li>
+                            <li><strong>export.html:</strong> Tick which of your saved items to export. Export Selected produces a clean JSON file with just those items.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Mobile-first design:</strong> On phones, the primary action (Import Selected / Export Selected) moves into a sticky bottom action bar, making it easy to reach with your thumb. Controls wrap neatly and tap targets are a bit larger.</li>
+                    <li><strong>Completion feedback:</strong> Imports now show a polished in-app popup (modal) summarizing how many items were added, then return to Settings.</li>
+                    <li><strong>Live refresh:</strong> The main page notices saved-items changes and refreshes the list automatically.</li>
+                </ul>
+
+                <h5 class="mt-3">Online Search Improvements</h5>
+                <ul>
+                    <li><strong>Test mode:</strong> Searching for <code>test</code> returns three sample items (Bread, Pasta, Rice) with realistic data and thumbnails, without hitting external APIs.</li>
+                    <li><strong>Removed Edamam:</strong> Online search now uses Nutritionix when credentials are provided; otherwise it uses Open Food Facts. Edamam settings and code paths were removed to simplify setup and reduce API errors.</li>
+                    <li><strong>Use button reliability:</strong> Clicking <em>Use</em> in search results always fills <em>Carbohydrates per 100g</em>, <em>Weight</em>, and <em>Label</em>. If an API doesn’t provide carbs/100g directly, the app computes it from total carbs and serving weight.</li>
+                </ul>
+
+                <h5 class="mt-3">Calculator & Saved Items</h5>
+                <ul>
+                    <li><strong>Robust numbers:</strong> Inputs accept comma decimals (e.g., <code>50,5</code>) and ignore stray characters. Press Enter in either field to calculate.</li>
+                    <li><strong>Saved item Use button:</strong> Populates fields and triggers calculation immediately. If an item lacks carbs/100g, it’s computed from stored serving and carbs.</li>
+                </ul>
+
+                <h5 class="mt-3">List Row Readability</h5>
+                <ul>
+                    <li><strong>Scrolling meta line:</strong> The line “Serving: … | Carbs In Serving: …” stays single-line. It auto-scrolls only when the text is longer than the available space (pauses on hover). On phones, the text gets maximum width while action buttons keep their space.</li>
+                </ul>
+
+                <h5 class="mt-3">Dark Mode Polish</h5>
+                <ul>
+                    <li><strong>Muted text fixed:</strong> All <code>.text-muted</code> content now uses a light gray in dark mode. This prevents unreadable black text on dark backgrounds across all pages.</li>
+                    <li><strong>Consistent components:</strong> Cards, lists, modals, tabs, and buttons have coherent dark styling and contrast.</li>
+                </ul>
+
+                <h5 class="mt-3">Quality & Reliability</h5>
+                <ul>
+                    <li><strong>Theme sync:</strong> Theme changes propagate between pages/tabs and apply instantly.</li>
+                    <li><strong>Safer fallbacks:</strong> Where an API omits fields, the app now computes reasonable defaults to avoid “undefined” values in the UI.</li>
+                </ul>
+
+                <p class="mt-3 mb-0">If you notice anything off or want other improvements (like one-tap Export All), let me know and I’ll add it.</p>
+
+                <h5 class="mt-3">Additional 1.3 Notes</h5>
+                <ul>
+                    <li>
+                        <strong>API Key Management Enhancements:</strong>
+                        <p>Significant improvements have been made to how API keys are managed within the application, offering greater control and ease of use.</p>
+                        <ul>
+                            <li>
+                                <strong>Enhanced GUI for API Key Management:</strong>
+                                <p>A new graphical user interface (GUI) has been implemented for adding, editing, and managing API keys for various external services. This intuitive interface simplifies the process, making it much easier for users to integrate and control their data sources without needing to delve into code or complex settings files.</p>
+                            </li>
+                            <li>
+                                <strong>Expanded API Key Options and Flexibility:</strong>
+                                <p>The application now supports a wider array of API key configurations, providing users with greater flexibility in choosing and utilizing different external data providers for food nutrition information. The system is designed to be more modular, allowing for easier integration of future APIs and offering users more control over their preferred data sources, enhancing the accuracy and breadth of available nutritional data.</p>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>User Interface and Experience Improvements:</strong>
+                        <p>Several updates have been implemented to enhance the overall look, feel, and responsiveness of the application across different devices.</p>
+                        <ul>
+                            <li>
+                                <strong>Optimized GUI Centering for Larger Screens:</strong>
+                                <p>To provide a more polished and professional user experience on larger displays, such as laptops and desktop monitors, the application's main graphical user interface (GUI) now intelligently centers itself. This ensures that the application is not only functional but also aesthetically pleasing, making optimal use of screen real estate and providing a comfortable viewing experience regardless of the monitor size or resolution.</p>
+                            </li>
+                            <li>
+                                <strong>Improved Dark Mode Toggle Styling and Visibility:</strong>
+                                <p>The Dark Mode toggle within the Settings menu has received a visual upgrade to enhance usability and consistency. Specifically, when Dark Mode is active and the toggle is in the "disabled" state, it will now distinctly appear in a white color. This change significantly improves visibility against the darker background, making the toggle's status immediately clear to the user and preventing any ambiguity that might arise from less contrasting color schemes.</p>
+                            </li>
+                            <li>
+                                <strong>Unified and Cohesive Background Design:</strong>
+                                <p>To create a more harmonious and visually appealing user interface, the background designs across the entire application have been standardized and made cohesive. This ensures a consistent aesthetic experience as users navigate between different sections and pages. The unified background treatment contributes to a more professional and polished look, reducing visual jarring and enhancing the overall user comfort and engagement with the application.</p>
+                            </li>
+                            <li>
+                                <strong>Smooth Carb Calculation Result Transition:</strong> Upon calculating the total carbohydrates, the result card (<code>#resultCard</code>) no longer just pops into existence. It now elegantly fades into view using a <code>fade-in</code> CSS transition. This subtle visual cue draws attention to the newly displayed information, making the calculation process feel more responsive and polished. The transition ensures that the user's focus is naturally directed to the outcome of their input, contributing to a more satisfying interaction.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Revamped and Organized Settings Page:</strong>
+                        <p>The settings interface (<code>settings.html</code>) has undergone a complete overhaul to provide a more structured, user-friendly, and scalable experience. Previously, settings might have been scattered or presented in a linear fashion, but now they are logically grouped within an intuitive accordion layout.</p>
+                        <p>This new design categorizes various settings into collapsible sections (e.g., "Visual," "About Carb Calculator"). Each section can be expanded or collapsed, allowing users to easily navigate and focus on the specific settings they wish to adjust without being overwhelmed by too many options at once. This not only improves the aesthetic appeal but also significantly enhances the usability and discoverability of different configuration options, making the application more accessible and manageable for all users.</p>
+                    </li>
+                    <li>
+                        <strong>Strategic Relocation of Dark Mode Toggle:</strong>
+                        <p>In line with the improved organization of the settings, the dark mode toggle switch has been thoughtfully moved from its previous location on the main application page (<code>index.html</code>) to the dedicated "Visual" section within the new settings page (<code>settings.html</code>).</p>
+                        <p>This relocation centralizes all visual preferences in one logical place, making it easier for users to find and manage display-related options. By consolidating such settings, we aim to reduce clutter on the main interface and provide a more consistent and intuitive user journey. Users can now access and change their preferred theme alongside other visual configurations, streamlining the customization process.</p>
+                    </li>
+                    <li>
+                        <strong>Dynamic User Interface Scaling for Enhanced Responsiveness:</strong>
+                        <p>A significant improvement in this version is the implementation of dynamic UI scaling, ensuring that the Carb Calculator application provides an optimal viewing and interaction experience across a wide array of devices and screen sizes. This means the user interface is no longer static but intelligently adapts its layout, element sizes, and content presentation based on the available screen real estate.</p>
+                        <p>Whether you are accessing the application on a compact smartphone, a mid-sized tablet, or a large desktop monitor, the UI will automatically adjust to maintain readability, usability, and aesthetic integrity. This responsiveness is achieved through a combination of flexible CSS layouts (like Flexbox and Grid), relative units (percentages, <code>vw</code>, <code>vh</code>), and media queries, which allow the application to apply different styles based on screen characteristics. This ensures that all interactive elements remain easily tappable or clickable, text is legible, and the overall layout remains coherent, providing a seamless and consistent experience regardless of the device or orientation.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        
 
         <div class="card mb-4">
             <div class="card-body">

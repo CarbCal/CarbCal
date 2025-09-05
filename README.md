@@ -1,4 +1,4 @@
-#  CarbCal WebApp
+# CarbCal WebApp
 
 <p align="center">
   <img src="CarbCal.png" alt="CarbCal Logo" width="150"/>
@@ -21,7 +21,7 @@
 - **🌐 Online Food Search:**
     - Instantly find nutrition data for a vast array of foods.
     - Utilizes the **Nutritionix API** for detailed, professional-grade data.
-    - Automatic fallback to the **Open Food Facts API** if the primary service is unavailable, ensuring high availability.
+    - Automatic fallback to the **Edamam API** and then the **Open Food Facts API** if the primary service is unavailable, ensuring high availability.
 - **📊 Detailed Nutrition Facts:** Click on any online search result to view a comprehensive breakdown of its nutritional information in a clean, modal view.
 - **✍️ Custom Item Entry:** Manually add and save your own custom food items with specific serving sizes and carbohydrate counts.
 - **🚀 Zero Dependencies:** Built with vanilla HTML, CSS, and JavaScript. No frameworks, no build steps. Just open `index.html` and go.
@@ -45,7 +45,7 @@ If you prefer to run it locally:
     cd CarbCal/WebApp
     ```
 3.  **Configure API Keys (Optional):**
-    For online food search functionality, you'll need to obtain API keys from Nutritionix. These can be added in the settings page of the application.
+    For online food search functionality, you'll need to obtain API keys from Nutritionix and Edamam. These can be added in the settings page of the application.
     If API keys are not configured, the application will automatically fall back to using the Open Food Facts API.
 4.  **Open the application:**
     Simply open the `index.html` file in your favorite web browser.
@@ -58,8 +58,8 @@ CarbCal is built from the ground up using core web technologies, demonstrating e
 
 -   **DOM Manipulation:** The dynamic and interactive UI is powered entirely by vanilla JavaScript, which handles everything from calculations and UI updates to creating and managing elements on the fly.
 -   **Browser `localStorage`:** All user data, including the list of saved food items and the selected theme (light/dark), is stored and retrieved using the browser's `localStorage` API. This ensures data persistence across sessions without needing a backend.
--   **`fetch` API for Asynchronous Operations:** The online search feature uses the native `fetch` API to make asynchronous HTTP requests to the Nutritionix and Open Food Facts APIs.
--   **Robust API Fallback Logic:** The application is designed for resilience. It first attempts to fetch data from the Nutritionix API. If this fails for any reason (e.g., API limits, network errors), it automatically and seamlessly falls back to the Open Food Facts API, ensuring the user can still get results.
+-   **`fetch` API for Asynchronous Operations:** The online search feature uses the native `fetch` API to make asynchronous HTTP requests to the Nutritionix, Edamam, and Open Food Facts APIs.
+-   **Robust API Fallback Logic:** The application is designed for resilience. It first attempts to fetch data from the Nutritionix API. If this fails, it automatically falls back to the Edamam API, and then to the Open Food Facts API, ensuring the user can still get results.
 -   **CSS3 for Styling and Animations:** The application is styled with modern CSS, including Flexbox for layout, custom properties for theming (light/dark modes), and keyframe animations for subtle, meaningful UI transitions.
 
 ---
