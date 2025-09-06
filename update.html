@@ -92,6 +92,23 @@
             border-radius: 1rem; /* Maintain rounded corners for all sides */
         }
         body.dark-mode .text-muted { color: #bbb !important; }
+
+        /* Colorful update styling */
+        .update-hero {
+            background: linear-gradient(135deg, #0d6efd 0%, #20c997 100%);
+            color: #fff;
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,.15);
+        }
+        .update-hero h2 { color: #fff; margin: 0; }
+        .update-hero p { margin: .25rem 0 0 0; opacity: .9; }
+        .feature-list { list-style: none; padding-left: 0; }
+        .feature-list li { display: flex; align-items: center; gap: .5rem; margin-bottom: .35rem; }
+        .badge-new { background-color: #0d6efd; }
+        .badge-improve { background-color: #20c997; }
+        .badge-remove { background-color: #dc3545; }
+        body.dark-mode .update-hero { box-shadow: 0 4px 10px rgba(0,0,0,.3); }
     </style>
 </head>
 <body>
@@ -103,18 +120,29 @@
 
     <div class="container my-4">
 
+        <div class="update-hero mb-4 d-flex flex-column flex-md-row align-items-md-center justify-content-md-between">
+            <div>
+                <h2 class="h3 mb-1"><i class="bi bi-stars me-2"></i> What’s New in v1.3.0</h2>
+                <p>Highlights of this release at a glance.</p>
+            </div>
+            <div class="mt-2 mt-md-0 d-flex gap-2">
+                <span class="badge badge-new">New</span>
+                <span class="badge badge-improve">Improved</span>
+            </div>
+        </div>
+
         <div class="card mb-4">
             <div class="card-body">
                 <h3 class="mt-2">Version 1.3 Updates:</h3>
                 <p class="text-muted">This release focuses on reliability, phone usability, and simplifying online search and data management. Below is a detailed walkthrough of what changed and why.</p>
 
                 <h5 class="mt-3">New In This Release</h5>
-                <ul>
-                    <li><strong>Shareable Export Code:</strong> Export now generates a compact, URL‑safe code (looks like random characters) shown in a popup with a Copy button. It’s easy to paste into chats and safe to share.</li>
-                    <li><strong>Import via Code:</strong> From Settings → Saved Items, choose <em>Import Code</em> to paste a code (or raw JSON). It decodes automatically and opens the selection page so you can pick items to add.</li>
-                    <li><strong>Import/Export polish on phones:</strong> Primary buttons stick to the bottom for thumb reach; modal text boxes are non‑resizable; close (X) icons are visible in dark mode; text inputs in modals use dark styling.</li>
-                    <li><strong>Saved Items quick add:</strong> The <em>Add Custom</em> action is now a simple “+” button embedded at the end of the Saved Items search field.</li>
-                    <li><strong>Result row UX:</strong> The “Serving | Carbs In Serving” line only scrolls when it overflows and leaves more room for buttons.</li>
+                <ul class="feature-list">
+                    <li><i class="bi bi-clipboard-check text-primary"></i> Shareable Export Code <span class="badge badge-new">New</span> — Compact URL‑safe code in a popup with Copy.</li>
+                    <li><i class="bi bi-upload text-success"></i> Import via Code <span class="badge badge-new">New</span> — Paste a code/raw JSON and select items to add.</li>
+                    <li><i class="bi bi-phone text-info"></i> Import/Export on phones <span class="badge badge-improve">Improved</span> — Sticky primary actions, non‑resizable text boxes, visible close buttons.</li>
+                    <li><i class="bi bi-plus-circle text-warning"></i> Saved Items quick add <span class="badge badge-improve">Improved</span> — “+” button inside the search field.</li>
+                    <li><i class="bi bi-text-paragraph text-secondary"></i> Result row UX <span class="badge badge-improve">Improved</span> — Auto‑scroll only when text overflows.</li>
                 </ul>
 
                 <h5 class="mt-3">Consistent Light Background</h5>

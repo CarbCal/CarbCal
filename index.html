@@ -284,6 +284,10 @@
             border-radius: 0 0 1rem 1rem; /* Match card border-radius */
             padding: 1rem;
         }
+        /* Dark mode input group text and fields */
+        body.dark-mode .input-group-text { background-color: #333 !important; color: #f8f9fa !important; border-color: #555 !important; }
+        body.dark-mode .form-control { background-color: #222222; color: #f8f9fa; border-color: #555; }
+        body.dark-mode .form-control:focus { background-color: #222222; color: #f8f9fa; border-color: #777; box-shadow: 0 0 0 0.25rem rgba(192,192,192,0.25); }
 
         body.dark-mode .tab-content {
             background-color: #222222; /* Darker background for tab content to match list items */
@@ -346,6 +350,22 @@
             border-radius: 0.5rem;
             overflow: hidden;
         }
+
+        /* (reverted colorful accents) */
+
+        /* What's New modal styling */
+        #whatsNewModal .whatsnew-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #20c997 100%);
+            color: #fff;
+        }
+        #whatsNewModal .whatsnew-header .modal-title { color: #fff; }
+        #whatsNewModal .whatsnew-header .btn-close { filter: invert(1); }
+        #whatsNewModal .feature-list { list-style: none; padding-left: 0; margin-bottom: .5rem; }
+        #whatsNewModal .feature-list li { display: flex; align-items: center; gap: .5rem; margin-bottom: .35rem; }
+        #whatsNewModal .feature-list i { font-size: 1rem; }
+        #whatsNewModal .badge-new { background-color: #0d6efd; }
+        #whatsNewModal .badge-improve { background-color: #20c997; }
+        body.dark-mode #whatsNewModal .modal-content { background-color: #222222; color: #f8f9fa; }
 
         /* Single-line marquee that scrolls and loops */
         .meta-inline {
@@ -479,6 +499,32 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" id="confirmRemoveBtn" class="btn btn-danger">Remove</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- What's New modal (shown once per version) -->
+    <div class="modal fade" id="whatsNewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header whatsnew-header">
+                    <h5 class="modal-title"><i class="bi bi-stars me-2"></i> What’s New <small id="whatsNewVersion" class="ms-2 opacity-75"></small></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Highlights in this release:</p>
+                    <ul class="feature-list">
+                        <li><i class="bi bi-clipboard-check text-primary"></i> Shareable Export Code <span class="badge badge-new">New</span></li>
+                        <li><i class="bi bi-upload text-success"></i> Import via Code with selection <span class="badge badge-new">New</span></li>
+                        <li><i class="bi bi-moon-stars text-warning"></i> Dark mode + mobile polish <span class="badge badge-improve">Improved</span></li>
+                        <li><i class="bi bi-plus-circle text-info"></i> Saved Items quick “+” add <span class="badge badge-improve">Improved</span></li>
+                    </ul>
+                    <p class="text-muted mb-0">Tap “See Updates” for full details.</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="update.html" id="seeUpdatesBtn" class="btn btn-primary">See Updates</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -1165,6 +1211,35 @@
             // Export/Import moved to settings.html
 
             updateApiStatusMessage();
+
+            // Show What's New once per version
+            const versionTextEl = document.querySelector('.version-box a');
+            const currentVersion = (() => {
+                const t = versionTextEl ? versionTextEl.textContent : '';
+                const m = /([0-9]+\.[0-9]+\.[0-9]+)/.exec(t || '');
+                return m ? m[1] : '0.0.0';
+            })();
+            const lastSeenVersion = localStorage.getItem('lastSeenVersion');
+            const alwaysShowWhatsNew = localStorage.getItem('alwaysShowWhatsNew') === 'true';
+            if (currentVersion && (alwaysShowWhatsNew || currentVersion !== lastSeenVersion)) {
+                const whatsNewEl = document.getElementById('whatsNewModal');
+                if (whatsNewEl && window.bootstrap) {
+                    // Mark as seen unless forced by test setting
+                    if (!alwaysShowWhatsNew) {
+                        localStorage.setItem('lastSeenVersion', currentVersion);
+                    }
+                    // Inject version into banner
+                    const vEl = document.getElementById('whatsNewVersion');
+                    if (vEl) vEl.textContent = `v${currentVersion}`;
+                    const m = new bootstrap.Modal(whatsNewEl);
+                    // Ensure link also marks as seen (redundant but safe)
+                    document.getElementById('seeUpdatesBtn')?.addEventListener('click', () => {
+                        if (!alwaysShowWhatsNew) localStorage.setItem('lastSeenVersion', currentVersion);
+                    });
+                    // Wait a moment before showing to avoid interrupting first paint
+                    setTimeout(() => m.show(), 800);
+                }
+            }
         });
     </script>
 </body>
