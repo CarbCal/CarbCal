@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Settings</title>
     <link rel="icon" type="image/png" href="CarbCal.png">
     <!-- Apple Touch Icon for Home Screen -->
@@ -25,6 +25,8 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            /* Fullscreen: no padding, draw under status bar */
+            padding-top: 0;
         }
 
         /* Light mode overlay to match index.html */
@@ -40,9 +42,16 @@
         }
 
         .navbar {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            background-color: #ffffff !important;
+            border-bottom: 1px solid rgba(0,0,0,.05);
         }
+        /* Frosted navbar when enabled (match index.html) */
+        .frosted .navbar { background-color: rgba(255,255,255,0.60) !important; -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%); border-bottom: 1px solid rgba(255,255,255,0.35); }
+        body.dark-mode.frosted .navbar { background-color: rgba(34,34,34,0.45) !important; border-bottom-color: rgba(255,255,255,0.18); }
 
         .navbar-brand {
             color: #212529;
@@ -195,12 +204,88 @@
             background-color: #444 !important;
             border-color: #888 !important;
         }
+        /* Fix dark-mode switches/checkbox ticks in Test Settings */
+        body.dark-mode .form-check-input {
+            background-color: #444 !important;
+            border-color: #888 !important;
+        }
+        /* Only hide default tick for regular checkboxes, not switches */
+        body.dark-mode .form-check:not(.form-switch) .form-check-input:not(:checked) {
+            background-image: none !important; /* avoid white tick when unchecked */
+        }
+        body.dark-mode .form-check-input:checked {
+            background-color: #0c63e4 !important;
+            border-color: #0c63e4 !important;
+        }
+        body.dark-mode .form-check-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25) !important;
+        }
+        /* Improve dark-mode switch styling (incl. Dark Mode toggle) */
+        body.dark-mode .form-switch .form-check-input {
+            background-color: #3a3a3a !important; /* track */
+            border-color: #666 !important;
+            /* Ensure the knob (dot) is white via Bootstrap var */
+            --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+        }
+        body.dark-mode .form-switch .form-check-input:checked {
+            background-color: #0d6efd !important; /* primary */
+            border-color: #0d6efd !important;
+        }
+        body.dark-mode .form-switch .form-check-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25) !important;
+        }
     </style>
+    <script>
+        // Fullscreen: allow drawing under the OS status bar in native builds
+        (function ensureSafeArea() {
+            const onReady = () => {
+                try {
+                    const cap = window.Capacitor;
+                    const statusBar = cap && cap.Plugins && cap.Plugins.StatusBar;
+                    if (statusBar && cap.isNativePlatform && cap.isNativePlatform()) {
+                        statusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+                    }
+                } catch (_) { /* noop */ }
+            };
+            if (document.readyState === 'complete' || document.readyState === 'interactive') onReady();
+            else document.addEventListener('DOMContentLoaded', onReady);
+            window.addEventListener('capacitorNativeReady', onReady);
+        })();
+    </script>
+    <script type="module">
+        import { App } from 'https://cdn.jsdelivr.net/npm/@capacitor/app@latest/dist/esm/index.js';
+        // Android hardware back: close modals, then go back or fallback to index
+        try {
+            App.addListener('backButton', ({ canGoBack }) => {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) { openModal.querySelector('[data-bs-dismiss="modal"]')?.click(); return; }
+                if (canGoBack || document.referrer) history.back(); else window.location.href = 'index.html';
+            });
+        } catch {}
+    </script>
 </head>
 <body>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply frosted UI like index.html (default ON)
+            const applyFrosted = () => {
+                const pref = localStorage.getItem('frostedUI');
+                const on = (pref === null || pref === 'true');
+                document.body.classList.toggle('frosted', on);
+            };
+            applyFrosted();
+            window.addEventListener('storage', (e) => { if (e.key === 'frostedUI') applyFrosted(); });
+            const applyGlass = () => {
+                const pref = localStorage.getItem('glassTheme') === 'true';
+                document.body.classList.toggle('glass-theme', !!pref);
+            };
+            applyGlass();
+            window.addEventListener('storage', (e) => { if (e.key === 'glassTheme') applyGlass(); });
+        });
+    </script>
     <nav class="navbar">
         <div class="container-fluid">
-            <a href="index.html" class="navbar-brand mb-0 h1"><i class="bi bi-arrow-left"></i> Back</a>
+            <button type="button" class="navbar-brand btn btn-link mb-0 h1 p-0" onclick="window.history.back()"><i class="bi bi-arrow-left"></i> Back</button>
         </div>
     </nav>
 
@@ -218,6 +303,14 @@
                         <div class="form-check form-switch d-flex justify-content-between align-items-center">
                             <label class="form-check-label" for="darkModeToggle"><i class="bi bi-moon-stars-fill"></i> Dark Mode</label>
                             <input class="form-check-input ms-auto" type="checkbox" id="darkModeToggle">
+                        </div>
+                        <div class="form-check form-switch d-flex justify-content-between align-items-center mt-2">
+                            <label class="form-check-label" for="roundedItemsToggle"><i class="bi bi-ui-radios-grid"></i> More Rounded List Items</label>
+                            <input class="form-check-input ms-auto" type="checkbox" id="roundedItemsToggle">
+                        </div>
+                        <div class="form-check form-switch d-flex justify-content-between align-items-center mt-2">
+                            <label class="form-check-label" for="frostedUIToggle"><i class="bi bi-droplet-half"></i> Frosted Glass UI</label>
+                            <input class="form-check-input ms-auto" type="checkbox" id="frostedUIToggle">
                         </div>
                     </div>
                 </div>
@@ -284,6 +377,13 @@
                             <input class="form-check-input ms-auto" type="checkbox" id="alwaysShowWhatsNewToggle">
                         </div>
                         <small class="text-muted">When enabled, the What’s New summary pops up on launch even if you already saw this version.</small>
+
+                        <hr>
+                        <div class="form-check form-switch d-flex justify-content-between align-items-center">
+                            <label class="form-check-label" for="alwaysShowTourToggle"><i class="bi bi-stars"></i> Always Show Onboarding Tour</label>
+                            <input class="form-check-input ms-auto" type="checkbox" id="alwaysShowTourToggle">
+                        </div>
+                        <small class="text-muted">When enabled, the quick tour runs on every launch.</small>
                     </div>
                 </div>
             </div>
@@ -305,6 +405,11 @@
                             <li><strong>Online Search:</strong> Find nutrition data for various foods using external APIs.</li>
                             <li><strong>Saved Items:</strong> Store and manage your frequently used food items, and import/export them.</li>
                         </ul>
+
+                        <div class="mt-3">
+                            <button id="runTourBtn" class="btn btn-primary"><i class="bi bi-stars"></i> Run Quick Tour</button>
+                            <small class="text-muted d-block mt-1">Opens the home screen and guides you through the basics.</small>
+                        </div>
 
                         <h4 class="mt-4">Features in Detail</h4>
                         <h5 class="mt-2">1. Dark Mode Toggle</h5>
@@ -345,6 +450,8 @@
             
             const saveApiKeysButton = document.getElementById('saveApiKeys');
             const alwaysShowWhatsNewToggle = document.getElementById('alwaysShowWhatsNewToggle');
+            const alwaysShowTourToggle = document.getElementById('alwaysShowTourToggle');
+            const runTourBtn = document.getElementById('runTourBtn');
 
             const applyTheme = (theme) => {
                 if (theme === 'dark') {
@@ -377,6 +484,15 @@
 
             // Load test setting
             alwaysShowWhatsNewToggle.checked = (localStorage.getItem('alwaysShowWhatsNew') === 'true');
+            alwaysShowTourToggle.checked = (localStorage.getItem('alwaysShowTour') === 'true');
+            // Rounded items default ON if unset
+            const roundedItemsToggle = document.getElementById('roundedItemsToggle');
+            const roundedPref = localStorage.getItem('roundedItems');
+            roundedItemsToggle.checked = (roundedPref === null || roundedPref === 'true');
+            // Frosted (default ON)
+            const frostedUIToggle = document.getElementById('frostedUIToggle');
+            const frostedPref = localStorage.getItem('frostedUI');
+            frostedUIToggle.checked = (frostedPref === null || frostedPref === 'true');
 
             // Load API keys
             nutritionixAppIdInput.value = localStorage.getItem('nutritionixAppId') || '';
@@ -397,6 +513,23 @@
             alwaysShowWhatsNewToggle.addEventListener('click', () => {
                 localStorage.setItem('alwaysShowWhatsNew', alwaysShowWhatsNewToggle.checked);
             });
+
+            alwaysShowTourToggle.addEventListener('click', () => {
+                localStorage.setItem('alwaysShowTour', alwaysShowTourToggle.checked);
+            });
+            roundedItemsToggle.addEventListener('click', () => {
+                localStorage.setItem('roundedItems', roundedItemsToggle.checked ? 'true' : 'false');
+            });
+            frostedUIToggle.addEventListener('click', () => {
+                localStorage.setItem('frostedUI', frostedUIToggle.checked ? 'true' : 'false');
+            });
+
+            if (runTourBtn) {
+                runTourBtn.addEventListener('click', () => {
+                    try { localStorage.setItem('forceTourNext', 'true'); } catch (_) {}
+                    window.location.href = 'index.html?tour=1';
+                });
+            }
 
             // Event Listener for saving API keys
             saveApiKeysButton.addEventListener('click', () => {
@@ -485,10 +618,17 @@
                     forceOpenFoodFactsToggle.checked = (event.newValue === 'true');
                 } else if (event.key === 'alwaysShowWhatsNew') {
                     alwaysShowWhatsNewToggle.checked = (event.newValue === 'true');
+                } else if (event.key === 'alwaysShowTour') {
+                    alwaysShowTourToggle.checked = (event.newValue === 'true');
                 } else if (event.key === 'nutritionixAppId') {
                     nutritionixAppIdInput.value = event.newValue || '';
                 } else if (event.key === 'nutritionixAppKey') {
                     nutritionixAppKeyInput.value = event.newValue || '';
+                } else if (event.key === 'roundedItems') {
+                    const pref = (event.newValue === null || event.newValue === 'true');
+                    const tgl = document.getElementById('roundedItemsToggle'); if (tgl) tgl.checked = pref;
+                } else if (event.key === 'frostedUI') {
+                    const tgl = document.getElementById('frostedUIToggle'); if (tgl) tgl.checked = (event.newValue === null || event.newValue === 'true');
                 }
             });
         });

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Updates</title>
     <link rel="icon" type="image/png" href="CarbCal.png">
     <!-- Apple Touch Icon for Home Screen -->
@@ -23,6 +23,8 @@
             background-size: cover;                     /* Cover the viewport */
             background-position: center;                /* Center the image */
             background-attachment: fixed;               /* Fixed background */
+            /* Fullscreen: no padding, draw under status bar */
+            padding-top: 0;
         }
 
         /* Light mode overlay to match index.html */
@@ -41,7 +43,12 @@
             position: sticky;
             top: 0;
             z-index: 1030;
+            background-color: #ffffff !important;
+            border-bottom: 1px solid rgba(0,0,0,.05);
         }
+        /* Frosted navbar when enabled (match index.html) */
+        .frosted .navbar { background-color: rgba(255,255,255,0.60) !important; -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%); border-bottom: 1px solid rgba(255,255,255,0.35); }
+        body.dark-mode.frosted .navbar { background-color: rgba(34,34,34,0.45) !important; border-bottom-color: rgba(255,255,255,0.18); }
         .navbar-brand {
             color: #212529;
         }
@@ -110,11 +117,58 @@
         .badge-remove { background-color: #dc3545; }
         body.dark-mode .update-hero { box-shadow: 0 4px 10px rgba(0,0,0,.3); }
     </style>
+    <script>
+        // Fullscreen: allow drawing under the OS status bar in native builds
+        (function ensureSafeArea() {
+            const onReady = () => {
+                try {
+                    const cap = window.Capacitor;
+                    const statusBar = cap && cap.Plugins && cap.Plugins.StatusBar;
+                    if (statusBar && cap.isNativePlatform && cap.isNativePlatform()) {
+                        statusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+                    }
+                } catch (_) { /* noop */ }
+            };
+            if (document.readyState === 'complete' || document.readyState === 'interactive') onReady();
+            else document.addEventListener('DOMContentLoaded', onReady);
+            window.addEventListener('capacitorNativeReady', onReady);
+        })();
+    </script>
+    
+    <script type="module">
+        import { App } from 'https://cdn.jsdelivr.net/npm/@capacitor/app@latest/dist/esm/index.js';
+        // Android hardware back: close modals, then back or fallback to index
+        try {
+            App.addListener('backButton', ({ canGoBack }) => {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) { openModal.querySelector('[data-bs-dismiss="modal"]')?.click(); return; }
+                if (canGoBack || document.referrer) history.back(); else window.location.href = 'index.html';
+            });
+        } catch {}
+    </script>
 </head>
 <body>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply frosted UI like index.html (default ON)
+            const applyFrosted = () => {
+                const pref = localStorage.getItem('frostedUI');
+                const on = (pref === null || pref === 'true');
+                document.body.classList.toggle('frosted', on);
+            };
+            applyFrosted();
+            window.addEventListener('storage', (e) => { if (e.key === 'frostedUI') applyFrosted(); });
+            const applyGlass = () => {
+                const pref = localStorage.getItem('glassTheme') === 'true';
+                document.body.classList.toggle('glass-theme', !!pref);
+            };
+            applyGlass();
+            window.addEventListener('storage', (e) => { if (e.key === 'glassTheme') applyGlass(); });
+        });
+    </script>
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
-            <a href="index.html" class="navbar-brand mb-0 h1"><i class="bi bi-arrow-left"></i> Back</a>
+            <button type="button" class="navbar-brand btn btn-link mb-0 h1 p-0" onclick="window.history.back()"><i class="bi bi-arrow-left"></i> Back</button>
         </div>
     </nav>
 
@@ -122,7 +176,7 @@
 
         <div class="update-hero mb-4 d-flex flex-column flex-md-row align-items-md-center justify-content-md-between">
             <div>
-                <h2 class="h3 mb-1"><i class="bi bi-stars me-2"></i> What’s New in v1.3.0</h2>
+                <h2 class="h3 mb-1"><i class="bi bi-stars me-2"></i> What’s New in v1.4.0</h2>
                 <p>Highlights of this release at a glance.</p>
             </div>
             <div class="mt-2 mt-md-0 d-flex gap-2">
@@ -131,19 +185,96 @@
             </div>
         </div>
 
+        <!-- 1.4 tile -->
         <div class="card mb-4">
             <div class="card-body">
-                <h3 class="mt-2">Version 1.3 Updates:</h3>
-                <p class="text-muted">This release focuses on reliability, phone usability, and simplifying online search and data management. Below is a detailed walkthrough of what changed and why.</p>
+                <h3 class="mt-2">Version 1.4 Updates:</h3>
+                <p class="text-muted">A comprehensive release bringing a frosted “glass” UI across the app, tactile haptics, Android edge‑to‑edge polish, tags and multi‑select for saved items, a rounded UI option, and a refreshed, more complete onboarding tour.</p>
 
-                <h5 class="mt-3">New In This Release</h5>
+                <h5 class="mt-3">Haptics</h5>
                 <ul class="feature-list">
-                    <li><i class="bi bi-clipboard-check text-primary"></i> Shareable Export Code <span class="badge badge-new">New</span> — Compact URL‑safe code in a popup with Copy.</li>
-                    <li><i class="bi bi-upload text-success"></i> Import via Code <span class="badge badge-new">New</span> — Paste a code/raw JSON and select items to add.</li>
-                    <li><i class="bi bi-phone text-info"></i> Import/Export on phones <span class="badge badge-improve">Improved</span> — Sticky primary actions, non‑resizable text boxes, visible close buttons.</li>
-                    <li><i class="bi bi-plus-circle text-warning"></i> Saved Items quick add <span class="badge badge-improve">Improved</span> — “+” button inside the search field.</li>
-                    <li><i class="bi bi-text-paragraph text-secondary"></i> Result row UX <span class="badge badge-improve">Improved</span> — Auto‑scroll only when text overflows.</li>
+                    <li><i class="bi bi-phone-vibrate text-primary"></i> Subtle impact feedback on calculate, using items, adding/saving/removing, online search actions, and selection mode changes.</li>
+                    <li><i class="bi bi-bell text-success"></i> Notification‑style haptics for success/warning/error events in key flows (e.g., validation errors, bulk remove).</li>
+                    <li><i class="bi bi-code-slash text-muted"></i> Dev notes: Uses Capacitor Haptics with a helper `window.ccHaptic('Light'|'Medium'|'Heavy')` and `window.ccNotify('Success'|'Warning'|'Error')`. Calls are wrapped in try/catch so web runs fine without native support.</li>
                 </ul>
+
+                <h5 class="mt-3">Frosted Navbar Everywhere</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-cloudy text-info"></i> The frosted “glass” navbar now applies consistently across Settings, Updates, Import, and Export — matching the Home page. Background subtly blurs with higher saturation for depth.</li>
+                    <li><i class="bi bi-sliders2 text-secondary"></i> Toggle via Settings → Visual → “Frosted UI” (on by default). Dark mode uses a translucent dark variant for readability.</li>
+                    <li><i class="bi bi-brush text-secondary"></i> Implementation: adds a `frosted` class to `<body>` (synced across tabs) enabling `.frosted .navbar { backdrop-filter: blur(12px) saturate(160%) }` with matching dark‑mode colors.</li>
+                </ul>
+
+                <h5 class="mt-3">Android Edge‑to‑Edge</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-phone text-primary"></i> Uses Capacitor StatusBar and Edge‑to‑Edge support to draw under system bars and apply safe‑area insets to CSS vars.</li>
+                    <li><i class="bi bi-aspect-ratio text-warning"></i> Adaptive bar styling by orientation; improved hardware back behavior closes modals or exits selection before navigating back.</li>
+                    <li><i class="bi bi-arrows-fullscreen text-info"></i> Exposes CSS variables `--edge-top/left/right/bottom` for consistent spacing against system bars; content and pills use `env(safe-area-inset-*)` where appropriate.</li>
+                </ul>
+
+                <h5 class="mt-3">Tags for Saved Items</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-tags text-primary"></i> Add descriptive tags to any saved item. Tags render as compact chips below each entry.</li>
+                    <li><i class="bi bi-pencil-square text-secondary"></i> Edit tags per item via long‑press actions or for multiple items at once from selection mode.</li>
+                    <li><i class="bi bi-funnel text-muted"></i> Search matches both labels and tags. Duplicate tags are automatically deduplicated, case‑insensitive.</li>
+                </ul>
+
+                <h5 class="mt-3">Multi‑Select for Saved Items</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-hand-index-thumb text-info"></i> Long‑press any saved item to enter selection mode (with gentle haptic feedback). Tap items to add/remove from the selection.</li>
+                    <li><i class="bi bi-ui-checks-grid text-secondary"></i> A pill‑shaped action bar appears at the bottom once something is selected, offering Edit Tags, Remove, and Cancel.</li>
+                    <li><i class="bi bi-clipboard-check text-success"></i> Visual polish: selected rows shrink slightly with an outline; newly‑selected items bounce subtly for confirmation.</li>
+                    <li><i class="bi bi-escape text-muted"></i> Hardware back exits selection first, then navigates if applicable.</li>
+                </ul>
+
+                <h5 class="mt-3">Rounded UI</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-app-indicator text-primary"></i> Optional “Rounded items” style increases border radius for list items and certain surfaces.</li>
+                    <li><i class="bi bi-toggle2-on text-secondary"></i> Toggle via Settings → Visual → “Rounded items” (on by default). Applies instantly and syncs across tabs.</li>
+                </ul>
+
+                <h5 class="mt-3">Updated Onboarding Tour</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-joystick text-primary"></i> A guided, multi‑step tour now covers the calculator, saving items, tags, online search, and the new selection/tag editing flows.</li>
+                    <li><i class="bi bi-compass text-secondary"></i> Smart timing: the tour runs on first launch (or when forced from Settings) and defers “What’s New” until it finishes.</li>
+                    <li><i class="bi bi-tools text-muted"></i> Test controls under Settings → Test Settings let you always show the tour or What’s New for easy validation.</li>
+                </ul>
+
+                <h5 class="mt-3">Saved Items & Search Polish</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-search text-secondary"></i> Online search and “Use” actions provide light haptic taps and reliably fill fields before calculating.</li>
+                    <li><i class="bi bi-megaphone text-muted"></i> Single‑line meta rows auto‑scroll only when overflowing; pause on hover for readability.</li>
+                </ul>
+
+                <h5 class="mt-3">Miscellaneous</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-moon-stars text-warning"></i> Dark‑mode navbar glass effect tuned for contrast.</li>
+                    <li><i class="bi bi-tools text-muted"></i> Minor fixes and performance tweaks.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 1.3.1 tile -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="mt-2">Version 1.3.1 Updates:</h3>
+                <p class="text-muted">A small polish release focused on bug fixes, a smoother onboarding tour, and quality-of-life tweaks in Import/Export and Test Settings.</p>
+
+                <h5 class="mt-3">Highlights</h5>
+                <ul class="feature-list">
+                    <li><i class="bi bi-bug text-danger"></i> Bug fixes and stability improvements across the app.</li>
+                    <li><i class="bi bi-stars text-primary"></i> Tour timing — the onboarding tour now runs without interruption; the What’s New popup waits until the tour finishes.</li>
+                    <li><i class="bi bi-search text-info"></i> Import/Export filtering — quick search boxes on selection pages to find items fast.</li>
+                    <li><i class="bi bi-gear text-secondary"></i> Test Settings — added toggles to always show What’s New and always show the onboarding tour for easy testing.</li>
+                    <li><i class="bi bi-moon-stars text-warning"></i> Dark mode — fixed switch/checkbox ticks in Test Settings so they’re not white when unticked.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="mt-2">Version 1.3.0 Updates:</h3>
+                <p class="text-muted">A larger release introducing Import/Export selection pages, mobile polish, online search improvements, and dark mode refinements.</p>
 
                 <h5 class="mt-3">Consistent Light Background</h5>
                 <ul>

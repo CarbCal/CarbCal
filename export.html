@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Export Saved Items</title>
     <link rel="icon" type="image/png" href="CarbCal.png">
     <link rel="apple-touch-icon" href="CarbCal.png">
@@ -20,6 +20,8 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            /* Fullscreen: no padding, draw under status bar */
+            padding-top: 0;
         }
 
         body::before {
@@ -35,7 +37,12 @@
             position: sticky;
             top: 0;
             z-index: 1030;
+            background-color: #ffffff !important;
+            border-bottom: 1px solid rgba(0,0,0,.05);
         }
+        /* Frosted navbar when enabled (match index.html) */
+        .frosted .navbar { background-color: rgba(255,255,255,0.60) !important; -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%); border-bottom: 1px solid rgba(255,255,255,0.35); }
+        body.dark-mode.frosted .navbar { background-color: rgba(34,34,34,0.45) !important; border-bottom-color: rgba(255,255,255,0.18); }
 
         .card {
             border: none;
@@ -89,7 +96,43 @@
         .primary-action .btn { width: 100%; }
     </style>
     <script>
+        // Fullscreen: allow drawing under the OS status bar in native builds
+        (function ensureSafeArea() {
+            const onReady = () => {
+                try {
+                    const cap = window.Capacitor;
+                    const statusBar = cap && cap.Plugins && cap.Plugins.StatusBar;
+                    if (statusBar && cap.isNativePlatform && cap.isNativePlatform()) {
+                        statusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+                    }
+                } catch (_) { /* noop */ }
+            };
+            if (document.readyState === 'complete' || document.readyState === 'interactive') onReady();
+            else document.addEventListener('DOMContentLoaded', onReady);
+            window.addEventListener('capacitorNativeReady', onReady);
+        })();
+    </script>
+    <script type="module">
+        import { App } from 'https://cdn.jsdelivr.net/npm/@capacitor/app@latest/dist/esm/index.js';
+        // Android hardware back: close modals, then back or fallback to settings
+        try {
+            App.addListener('backButton', ({ canGoBack }) => {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) { openModal.querySelector('[data-bs-dismiss="modal"]')?.click(); return; }
+                if (canGoBack || document.referrer) history.back(); else window.location.href = 'settings.html';
+            });
+        } catch {}
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Apply frosted UI like index.html (default ON)
+            const applyFrosted = () => {
+                const pref = localStorage.getItem('frostedUI');
+                const on = (pref === null || pref === 'true');
+                document.body.classList.toggle('frosted', on);
+            };
+            applyFrosted();
+            window.addEventListener('storage', (e) => { if (e.key === 'frostedUI') applyFrosted(); });
             const applyTheme = (theme) => {
                 if (theme === 'dark') document.body.classList.add('dark-mode');
                 else document.body.classList.remove('dark-mode');
@@ -114,6 +157,14 @@
                 document.getElementById('mainContent').style.display = 'none';
                 return;
             }
+
+            // Glass theme apply
+            const applyGlass = () => {
+                const pref = localStorage.getItem('glassTheme') === 'true';
+                document.body.classList.toggle('glass-theme', !!pref);
+            };
+            applyGlass();
+            window.addEventListener('storage', (e) => { if (e.key === 'glassTheme') applyGlass(); });
 
             const getKey = (item) => (item && (item.id != null ? String(item.id) : (item.label || '')));
             const selectedKeys = new Set();
@@ -242,9 +293,10 @@
     </style>
 </head>
 <body>
+    
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
-            <a href="settings.html" class="navbar-brand mb-0 h1"><i class="bi bi-arrow-left"></i> Back</a>
+            <button type="button" class="navbar-brand btn btn-link mb-0 h1 p-0" onclick="window.history.back()"><i class="bi bi-arrow-left"></i> Back</button>
         </div>
     </nav>
 
