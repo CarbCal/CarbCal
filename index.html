@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Carb Calculator</title>
     <link rel="icon" type="image/png" href="CarbCal.png">
     <!-- Apple Touch Icon for Home Screen -->
@@ -21,16 +21,19 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            /* Fullscreen: no padding, draw under status bar */
+            padding-top: 0;
         }
+
 
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.8);
+            top: var(--edge-top, 0);
+            left: var(--edge-left, 0);
+            right: var(--edge-right, 0);
+            bottom: var(--edge-bottom, 0);
+            background-color: rgba(200, 200, 200, 0.8); /* light grey overlay */
             z-index: -1;
         }
 
@@ -39,7 +42,13 @@
             position: sticky;
             top: 0;
             z-index: 1030;
+            background-color: #ffffff !important;
+            border-bottom: 1px solid rgba(0,0,0,.05);
         }
+        body.dark-mode .navbar { background-color: #2d2d2d !important; border-bottom-color: rgba(255,255,255,0.12); }
+        /* Frosted navbar when enabled */
+        .frosted .navbar { background-color: rgba(255,255,255,0.60) !important; -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%); border-bottom: 1px solid rgba(255,255,255,0.35); }
+        body.dark-mode.frosted .navbar { background-color: rgba(34,34,34,0.45) !important; border-bottom-color: rgba(255,255,255,0.18); }
 
         .card {
             border: none;
@@ -163,6 +172,66 @@
             margin-bottom: .5rem;
             background-color: rgba(255, 255, 255, 0.9);
         }
+
+        /* Multi-select UI */
+        .select-box { display: none !important; }
+        .list-group-item { transition: transform .12s ease, background-color .12s ease, outline-color .12s ease; }
+        .list-group-item.selected { outline: 2px solid #0d6efd; background-color: rgba(13,110,253,0.06); transform: scale(0.85); }
+        @keyframes selectBounce {
+            0% { transform: scale(1); }
+            60% { transform: scale(0.80); }
+            100% { transform: scale(0.85); }
+        }
+        .select-bounce { animation: selectBounce 220ms ease-out forwards; }
+        body.dark-mode .list-group-item.selected { outline-color: #66a3ff; background-color: rgba(102,163,255,0.12); }
+        /* Selection bar: long pill fixed at bottom */
+        #selectionBar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 1029; background: transparent; padding: .5rem; }
+        #selectionBar .pill {
+            margin: 0 auto;
+            display: inline-flex;
+            gap: .75rem;
+            align-items: center;
+            padding: .65rem 1rem;
+            border-radius: 9999px;
+            background: rgba(255,255,255,0.60);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.35);
+            box-shadow: 0 6px 24px rgba(0,0,0,.16);
+            padding-right: calc(1rem + env(safe-area-inset-right));
+            padding-left: calc(1rem + env(safe-area-inset-left));
+            transform: translateZ(0);
+        }
+        body.dark-mode #selectionBar .pill {
+            background: rgba(34,34,34,0.45);
+            border-color: rgba(255,255,255,0.18);
+            box-shadow: 0 6px 28px rgba(0,0,0,.45);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            backdrop-filter: blur(12px) saturate(160%);
+        }
+        #selectionBar .pill .btn { border: 0; border-radius: 9999px; padding: .5rem .6rem; font-size: 1.05rem; }
+        #selectionBar .pill .btn i { font-size: 1.1rem; line-height: 1; }
+        .selection-mode .info-fab { display: none !important; }
+        /* Make room so last items aren't hidden by the bottom bar */
+        .selection-mode #savedItemsList { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+
+        /* Tags */
+        .tag-chip { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .75rem; margin-right: .35rem; margin-top: .25rem; background: #e9ecef; color: #495057; }
+        body.dark-mode .tag-chip { background: #333; color: #e0e0e0; }
+
+        /* (Glass on items removed — navbar keeps frosted look) */
+
+
+        /* More-rounded cards for Saved + Online Search (toggleable) */
+        .rounded-items #savedItemsList .list-group-item,
+        .rounded-items #onlineSearchResults .list-group-item { border-radius: 1.25rem; }
+
+        /* Tags editor modal: rounded + translucent like pill */
+        #editTagsModal .modal-content { border-radius: 1rem; background: rgba(255,255,255,0.94); border: 1px solid rgba(0,0,0,.08); backdrop-filter: blur(8px); }
+        body.dark-mode #editTagsModal .modal-content { background: rgba(34,34,34,0.92); border-color: #444; }
+        #editTagsModal .modal-header, #editTagsModal .modal-footer { background: transparent; border-color: rgba(0,0,0,.08); }
+        body.dark-mode #editTagsModal .modal-header, body.dark-mode #editTagsModal .modal-footer { border-color: #444; }
+        #tagsChips .btn { border-radius: 9999px; }
 
         
 
@@ -304,14 +373,12 @@
         }
 
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-200%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-200%); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes itemAppear {
+            0%   { opacity: 0; transform: translateY(12px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0)    scale(1.0); }
         }
 
         #result-container {
@@ -329,9 +396,7 @@
             opacity: 1;
         }
 
-        .online-search-result-item {
-            animation: slideIn 0.5s ease-out both;
-        }
+        .online-search-result-item { animation: itemAppear 0.38s ease-out both; }
 
         .search-card-animation {
             animation: slideDown 0.5s ease-out both;
@@ -354,12 +419,22 @@
         /* (reverted colorful accents) */
 
         /* What's New modal styling */
-        #whatsNewModal .whatsnew-header {
-            background: linear-gradient(135deg, #0d6efd 0%, #20c997 100%);
-            color: #fff;
+        /* Frosted What's New modal (when frosted enabled) */
+        .frosted #whatsNewModal .modal-content {
+            background: rgba(255,255,255,0.70);
+            -webkit-backdrop-filter: blur(14px) saturate(160%);
+            backdrop-filter: blur(14px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.35);
+            box-shadow: 0 10px 36px rgba(0,0,0,.18);
         }
-        #whatsNewModal .whatsnew-header .modal-title { color: #fff; }
-        #whatsNewModal .whatsnew-header .btn-close { filter: invert(1); }
+        body.dark-mode.frosted #whatsNewModal .modal-content {
+            background: rgba(34,34,34,0.50);
+            border-color: rgba(255,255,255,0.18);
+        }
+        .frosted #whatsNewModal .whatsnew-header { background: transparent; border-bottom: 1px solid rgba(0,0,0,.08); }
+        body.dark-mode.frosted #whatsNewModal .whatsnew-header { border-bottom-color: #444; }
+        .frosted #whatsNewModal .whatsnew-header .modal-title { color: inherit; }
+        .frosted #whatsNewModal .whatsnew-header .btn-close { filter: none; }
         #whatsNewModal .feature-list { list-style: none; padding-left: 0; margin-bottom: .5rem; }
         #whatsNewModal .feature-list li { display: flex; align-items: center; gap: .5rem; margin-bottom: .35rem; }
         #whatsNewModal .feature-list i { font-size: 1rem; }
@@ -393,14 +468,63 @@
         .list-item-left { flex: 1 1 auto; min-width: 0; }
         .list-item-actions { flex: 0 0 auto; display: flex; align-items: center; gap: .25rem; }
         .use-online-item-btn { flex: 0 0 auto; white-space: nowrap; }
+
+        /* Onboarding tour styles */
+        .tour-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; }
+        .tour-highlight { position: relative; z-index: 2002 !important; box-shadow: 0 0 0 4px rgba(13,110,253,.35); border-radius: .5rem; outline: 3px solid rgba(13,110,253,.6); outline-offset: 2px; }
+        body.dark-mode .tour-highlight { outline-color: rgba(13,110,253,.85); }
+        .tour-tooltip { position: fixed; z-index: 2003; max-width: 320px; background: #fff; color: #212529; border-radius: .75rem; box-shadow: 0 10px 30px rgba(0,0,0,.25); padding: .75rem .9rem; border: 1px solid rgba(0,0,0,.05); }
+        .tour-tooltip .tour-title { font-weight: 600; margin-bottom: .25rem; }
+        .tour-tooltip .tour-text { font-size: .95rem; margin-bottom: .5rem; }
+        .tour-tooltip .tour-buttons { display: flex; gap: .5rem; justify-content: flex-end; }
+        .tour-tooltip .tour-buttons button { border: 0; padding: .4rem .65rem; border-radius: .5rem; font-weight: 500; }
+        .tour-btn-skip { background: transparent; color: #6c757d; }
+        .tour-btn-prev { background: #e9ecef; color: #212529; }
+        .tour-btn-next { background: #0d6efd; color: #fff; }
+        body.dark-mode .tour-tooltip { background: #222222; color: #f8f9fa; border-color: #444; }
+        body.dark-mode .tour-btn-prev { background: #444; color: #f8f9fa; }
+        body.dark-mode .tour-btn-skip { color: #bbb; }
+        /* Keep fixed gear fixed while highlighted */
+        .info-fab.tour-highlight { position: fixed !important; z-index: 2002 !important; }
+
+        /* Result emphasis when tour triggers Use */
+        .tour-result-spot { animation: tourPulse 1.2s ease-out 2; box-shadow: 0 0 0 4px rgba(13,110,253,.35), 0 0 0 12px rgba(13,110,253,.12) !important; }
+        .tour-pop { animation: tourPop 700ms ease-out; }
+        @keyframes tourPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(13,110,253,.35), 0 0 0 8px rgba(13,110,253,.12); }
+            60%  { box-shadow: 0 0 0 8px rgba(13,110,253,.25), 0 0 0 16px rgba(13,110,253,.08); }
+            100% { box-shadow: 0 0 0 0 rgba(13,110,253,0), 0 0 0 0 rgba(13,110,253,0); }
+        }
+        @keyframes tourPop {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
     </style>
+    <script>
+        // Fullscreen: allow drawing under the OS status bar in native builds
+        (function ensureSafeArea() {
+            const onReady = () => {
+                try {
+                    const cap = window.Capacitor;
+                    const statusBar = cap && cap.Plugins && cap.Plugins.StatusBar;
+                    if (statusBar && cap.isNativePlatform && cap.isNativePlatform()) {
+                        statusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+                    }
+                } catch (_) { /* noop */ }
+            };
+            if (document.readyState === 'complete' || document.readyState === 'interactive') onReady();
+            else document.addEventListener('DOMContentLoaded', onReady);
+            window.addEventListener('capacitorNativeReady', onReady);
+        })();
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1"><i class="bi bi-calculator"></i> Carb Calculator</span>
+            <span class="navbar-brand mb-0 h1"><i class="bi bi-calculator"></i> CarbCal</span>
             <div class="ms-auto border rounded px-2 py-1 version-box">
-                <a href="update.html" class="navbar-text m-34" style="text-decoration: none; color: inherit;">Version 1.3.0</a>
+                <a href="update.html" class="navbar-text m-34" style="text-decoration: none; color: inherit;">Version 1.4.0</a>
             </div>
         </div>
     </nav>
@@ -475,10 +599,60 @@
                                     </button>
                                 </div>
                             </div>
+                            <div id="selectionBar" class="align-items-center justify-content-center mb-2" style="display:none">
+                                <div class="pill">
+                                    <button id="selectionEditTagsBtn" class="btn btn-sm btn-outline-primary" title="Edit tags" aria-label="Edit tags"><i class="bi bi-tags"></i></button>
+                                    <button id="selectionRemoveBtn" class="btn btn-sm btn-outline-danger" title="Remove" aria-label="Remove"><i class="bi bi-trash"></i></button>
+                                    <button id="selectionCancelBtn" class="btn btn-sm btn-outline-secondary" title="Cancel" aria-label="Cancel"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
                             <ul id="savedItemsList" class="list-group">
                             </ul>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Item Actions (long-press) -->
+    <div class="modal fade" id="savedItemActionsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Item Actions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Choose an action:</p>
+                    <div class="d-grid gap-2">
+                        <button type="button" id="itemActionEditTags" class="btn btn-outline-primary"><i class="bi bi-tags"></i> Edit Tags</button>
+                        <button type="button" id="itemActionRemove" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Tags Modal (single or multi) -->
+    <div class="modal fade" id="editTagsModal" tabindex="-1" aria-labelledby="editTagsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTagsModalLabel">Edit Tags</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="tagsSharedNote" class="text-muted small mb-2"></div>
+                    <div id="tagsChips" class="mb-2"></div>
+                    <div class="input-group">
+                        <input type="text" id="newTagInput" class="form-control" placeholder="Add tag...">
+                        <button type="button" id="addTagBtn" class="btn btn-primary">Add</button>
+                    </div>
+                    <div class="text-muted small mt-2">Tap a tag to remove it.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Done</button>
                 </div>
             </div>
         </div>
@@ -515,10 +689,13 @@
                 <div class="modal-body">
                     <p>Highlights in this release:</p>
                     <ul class="feature-list">
-                        <li><i class="bi bi-clipboard-check text-primary"></i> Shareable Export Code <span class="badge badge-new">New</span></li>
-                        <li><i class="bi bi-upload text-success"></i> Import via Code with selection <span class="badge badge-new">New</span></li>
-                        <li><i class="bi bi-moon-stars text-warning"></i> Dark mode + mobile polish <span class="badge badge-improve">Improved</span></li>
-                        <li><i class="bi bi-plus-circle text-info"></i> Saved Items quick “+” add <span class="badge badge-improve">Improved</span></li>
+                        <li><i class="bi bi-cloudy text-info"></i> Frosted UI on all pages <span class="badge badge-new">New</span></li>
+                        <li><i class="bi bi-phone-vibrate text-primary"></i> Haptics across key actions <span class="badge badge-new">New</span></li>
+                        <li><i class="bi bi-phone text-success"></i> Android edge‑to‑edge polish <span class="badge badge-improve">Improved</span></li>
+                        <li><i class="bi bi-tags text-primary"></i> Tags for saved items <span class="badge badge-new">New</span></li>
+                        <li><i class="bi bi-ui-checks-grid text-primary"></i> Multi‑select for saved items <span class="badge badge-new">New</span></li>
+                        <li><i class="bi bi-app-indicator text-info"></i> Optional rounded UI <span class="badge badge-new">New</span></li>
+                        <li><i class="bi bi-joystick text-warning"></i> Expanded onboarding tour <span class="badge badge-improve">Improved</span></li>
                     </ul>
                     <p class="text-muted mb-0">Tap “See Updates” for full details.</p>
                 </div>
@@ -600,6 +777,17 @@
             const onlineSearchBtn = document.getElementById('onlineSearchBtn');
             const onlineSearchResults = document.getElementById('onlineSearchResults');
             const showMoreBtn = document.getElementById('showMoreBtn');
+            const saveTagsBtn = document.getElementById('saveTagsBtn');
+            const selectionBar = document.getElementById('selectionBar');
+            const selectedCountEl = document.getElementById('selectedCount');
+            const selectionEditTagsBtn = document.getElementById('selectionEditTagsBtn');
+            const selectionRemoveBtn = document.getElementById('selectionRemoveBtn');
+            const selectionCancelBtn = document.getElementById('selectionCancelBtn');
+            const itemActionEditTags = document.getElementById('itemActionEditTags');
+            const itemActionRemove = document.getElementById('itemActionRemove');
+            const itemActionsModalEl = document.getElementById('savedItemActionsModal');
+            const itemActionsModal = itemActionsModalEl ? new bootstrap.Modal(itemActionsModalEl) : null;
+            let currentActionsItemId = null;
 
             // Apply saved theme on load
             const applyTheme = (theme) => {
@@ -615,18 +803,32 @@
             } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 applyTheme('dark');
             }
+            // Frosted UI (default ON)
+            const applyFrosted = () => {
+                const pref = localStorage.getItem('frostedUI');
+                const on = (pref === null || pref === 'true');
+                document.body.classList.toggle('frosted', on);
+            };
+            applyFrosted();
 
-            // Synchronize theme across tabs/windows
+            // Synchronize theme/rounded/frosted across tabs/windows
             window.addEventListener('storage', (event) => {
                 if (event.key === 'theme') {
                     applyTheme(event.newValue);
                 } else if (event.key === 'savedItems') {
                     savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
                     renderSavedItems();
+                } else if (event.key === 'roundedItems') {
+                    applyRoundedPref();
+                } else if (event.key === 'frostedUI') {
+                    applyFrosted();
                 }
             });
 
             let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+            let selectionMode = false;
+            let suppressAnimations = false;
+            const selectedIds = new Set();
             let itemToRemove = null;
             let currentQuery = '';
             let nextPageUrl = null;
@@ -637,7 +839,11 @@
             const renderSavedItems = () => {
                 const searchTerm = searchInput.value.toLowerCase();
                 const filteredItems = savedItems
-                    .filter(item => item.label.toLowerCase().includes(searchTerm))
+                    .filter(item => {
+                        const inLabel = (item.label || '').toLowerCase().includes(searchTerm);
+                        const inTags = (Array.isArray(item.tags) ? item.tags : []).some(t => (t||'').toLowerCase().includes(searchTerm));
+                        return inLabel || inTags;
+                    })
                     .sort((a, b) => a.label.localeCompare(b.label));
 
                 savedItemsList.innerHTML = '';
@@ -651,9 +857,16 @@
                 filteredItems.forEach((item, index) => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
-                    li.style.animationDelay = `${index * 0.1}s`;
+                    // Avoid slide-in animations when in selection mode or when suppressed
+                    if (selectionMode || suppressAnimations) {
+                        li.style.animation = 'none';
+                        li.style.transition = 'none';
+                    } else {
+                        li.style.animationDelay = `${index * 0.1}s`;
+                    }
                     li.innerHTML = `
                         <div class="list-item-left me-2">
+                            <input type="checkbox" class="form-check-input select-box" aria-label="select">
                             <strong class="d-block">${item.label}</strong>
                             <small class="text-muted meta-inline">
                                 <span class="marquee__inner">
@@ -664,10 +877,22 @@
                         </div>
                         <div class="btn-group list-item-actions">
                             <button class="btn btn-sm btn-outline-secondary use-btn"><i class="bi bi-arrow-up-right-square"></i> Use</button>
-                            <button class="btn btn-sm btn-outline-danger remove-btn"><i class="bi bi-trash"></i></button>
                         </div>
                     `;
-                    li.querySelector('.use-btn').addEventListener('click', () => {
+                    li.dataset.itemId = String(item.id);
+                    // Render tags below
+                    try {
+                        const left = li.querySelector('.list-item-left');
+                        const tags = Array.isArray(item.tags) ? item.tags : [];
+                        if (tags.length && left) {
+                            const row = document.createElement('div');
+                            row.className = 'tags-row';
+                            tags.forEach(t => { const s = document.createElement('span'); s.className = 'tag-chip'; s.textContent = (t||'').trim(); row.appendChild(s); });
+                            left.appendChild(row);
+                        }
+                    } catch {}
+                    li.querySelector('.use-btn').addEventListener('click', (ev) => {
+                        if (selectionMode) return; // ignore normal use when selecting
                         const grams = parseFloat(item.servingSize) || 0;
                         const total = parseFloat(item.totalCarbs) || 0;
                         let cp100 = parseFloat(item.carbsPer100g);
@@ -680,13 +905,24 @@
                         labelInput.value = item.label || '';
 
                         // Trigger calculation and bring focus to the top, consistent with online results
+                        try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
                         calculateBtn.click();
                         window.scrollTo(0, 0);
                     });
-                    li.querySelector('.remove-btn').addEventListener('click', () => {
-                        itemToRemove = item;
-                        confirmRemoveModal.show();
-                    });
+                    // Long-press anywhere on the item enters selection mode
+                    (function attachLongPressOnItem(row, id){
+                        const HOLD_MS = 500; let timer = null; let longDone = false;
+                        const start = () => { longDone = false; timer = setTimeout(() => { longDone = true; enterSelectionMode(id); }, HOLD_MS); };
+                        const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+                        row.addEventListener('mousedown', start); row.addEventListener('touchstart', start, { passive: true });
+                        ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev => row.addEventListener(ev, cancel));
+                        row.addEventListener('click', (e) => { if (longDone) { e.preventDefault(); e.stopPropagation(); } else if (selectionMode) { toggleSelect(id); e.preventDefault(); } });
+                    })(li, item.id);
+                    // Apply selection state visuals
+                    if (selectedIds.has(item.id)) {
+                        li.classList.add('selected');
+                        const cb = li.querySelector('.select-box'); if (cb) cb.checked = true;
+                    }
                     savedItemsList.appendChild(li);
                     // Enable marquee only when content overflows
                     const meta = li.querySelector('.meta-inline');
@@ -698,6 +934,155 @@
                     }
                 });
             };
+
+            // Rounded items preference
+            function applyRoundedPref() {
+                const pref = localStorage.getItem('roundedItems');
+                const on = (pref === null || pref === 'true');
+                document.body.classList.toggle('rounded-items', on);
+            }
+            applyRoundedPref();
+            // No standalone hint; onboarding tour explains long‑press selection.
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'roundedItems') applyRoundedPref();
+            });
+
+            function updateSelectionUI() {
+                if (selectionMode) document.body.classList.add('selection-mode'); else document.body.classList.remove('selection-mode');
+                // Only show the bottom menu after at least one item is selected
+                const show = selectionMode && selectedIds.size > 0;
+                if (selectionBar) {
+                    selectionBar.style.display = show ? 'flex' : 'none';
+                    selectionBar.classList.toggle('d-flex', show);
+                }
+                if (selectedCountEl) selectedCountEl.textContent = String(selectedIds.size);
+                // re-render to update checkboxes and selected class
+                renderSavedItems();
+                // reset suppression after one paint
+                suppressAnimations = false;
+            }
+
+            function enterSelectionMode(id) {
+                selectionMode = true;
+                selectedIds.clear();
+                if (id != null) selectedIds.add(id);
+                try { window.ccHaptic && window.ccHaptic('Medium'); } catch {}
+                updateSelectionUI();
+            }
+            function exitSelectionMode() {
+                selectionMode = false;
+                selectedIds.clear();
+                suppressAnimations = true; // prevent slide-in on exit
+                try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
+                updateSelectionUI();
+            }
+            function toggleSelect(id) {
+                const had = selectedIds.has(id);
+                if (had) selectedIds.delete(id); else selectedIds.add(id);
+                if (!had) { try { window.ccHaptic && window.ccHaptic('Light'); } catch {} }
+                // Bounce animation when newly selected
+                if (!had) {
+                    const row = document.querySelector(`li.list-group-item[data-item-id="${id}"]`);
+                    if (row) {
+                        row.classList.remove('select-bounce');
+                        void row.offsetWidth; // reflow to restart
+                        row.classList.add('select-bounce');
+                        row.addEventListener('animationend', () => row.classList.remove('select-bounce'), { once: true });
+                    }
+                }
+                if (selectionMode && selectedIds.size === 0) { exitSelectionMode(); return; }
+                updateSelectionUI();
+            }
+
+            // Selection bar actions
+            if (selectionCancelBtn) selectionCancelBtn.addEventListener('click', () => { try { window.ccHaptic && window.ccHaptic('Light'); } catch {} exitSelectionMode(); });
+            if (selectionRemoveBtn) selectionRemoveBtn.addEventListener('click', () => {
+                if (selectedIds.size === 0) return;
+                const ids = new Set(selectedIds);
+                savedItems = savedItems.filter(i => !ids.has(i.id));
+                localStorage.setItem('savedItems', JSON.stringify(savedItems));
+                try { window.ccNotify && window.ccNotify('Warning'); } catch {}
+                exitSelectionMode();
+            });
+            if (selectionEditTagsBtn) selectionEditTagsBtn.addEventListener('click', () => {
+                if (selectedIds.size === 0) return;
+                try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
+                openTagsEditorForSelection();
+            });
+
+            // Expose selection helpers for back handling and tour
+            window.ccIsSelectionMode = () => selectionMode;
+            window.ccExitSelectionMode = () => exitSelectionMode();
+            window.ccEnterSelectionMode = (id) => enterSelectionMode(id);
+
+            function getCommonTags(items) {
+                if (items.length === 0) return [];
+                let common = new Set((Array.isArray(items[0].tags) ? items[0].tags : []).map(t => (t||'').trim().toLowerCase()));
+                for (let i = 1; i < items.length; i++) {
+                    const setI = new Set((Array.isArray(items[i].tags) ? items[i].tags : []).map(t => (t||'').trim().toLowerCase()));
+                    common = new Set([...common].filter(x => setI.has(x)));
+                }
+                return [...common];
+            }
+
+            function renderTagsChips(tagKeys, items) {
+                const chips = document.getElementById('tagsChips');
+                chips.innerHTML = '';
+                tagKeys.forEach(k => {
+                    const human = (items.find(i => (i.tags||[]).some(t => (t||'').trim().toLowerCase() === k))?.tags || []).find(t => (t||'').trim().toLowerCase() === k) || k;
+                    const b = document.createElement('button');
+                    b.type = 'button'; b.className = 'btn btn-sm btn-outline-secondary me-2 mb-2'; b.textContent = human;
+                    b.addEventListener('click', () => {
+                        // remove this tag key from all provided items
+                        items.forEach(it => { it.tags = (it.tags||[]).filter(t => (t||'').trim().toLowerCase() !== k); });
+                        localStorage.setItem('savedItems', JSON.stringify(savedItems));
+                        renderSavedItems();
+                        // refresh chips
+                        const current = Array.from(selectedIds).map(id => savedItems.find(i => i.id === id)).filter(Boolean);
+                        renderTagsChips(getCommonTags(current), current);
+                    });
+                    chips.appendChild(b);
+                });
+            }
+
+            function openTagsEditorForSelection() {
+                const ids = Array.from(selectedIds);
+                const selected = ids.map(id => savedItems.find(i => i.id === id)).filter(Boolean);
+                const note = document.getElementById('tagsSharedNote');
+                const input = document.getElementById('newTagInput');
+                const addBtn = document.getElementById('addTagBtn');
+                if (selected.length === 1) {
+                    const item = selected[0];
+                    document.getElementById('editTagsModalLabel').textContent = `Tags for ${item.label}`;
+                    note.textContent = 'Tap a tag to remove it. Add new tags below.';
+                    // show all tags for this item
+                    const keys = (item.tags||[]).map(t => (t||'').trim().toLowerCase());
+                    renderTagsChips(keys, [item]);
+                } else {
+                    document.getElementById('editTagsModalLabel').textContent = `Edit Tags (${selected.length} items)`;
+                    note.textContent = 'Showing tags shared by all selected items. Add applies to all.';
+                    renderTagsChips(getCommonTags(selected), selected);
+                }
+                input.value = '';
+                const onAdd = () => {
+                    const raw = (input.value || '').trim(); if (!raw) return;
+                    const tags = raw.split(',').map(s => s.trim()).filter(Boolean);
+                    const lowSet = new Set(); tags.forEach(t => lowSet.add(t.toLowerCase()));
+                    selected.forEach(it => {
+                        const existing = new Set((it.tags||[]).map(t => (t||'').trim().toLowerCase()));
+                        const addList = tags.filter(t => !existing.has(t.toLowerCase()));
+                        it.tags = [...(it.tags||[]), ...addList];
+                    });
+                    localStorage.setItem('savedItems', JSON.stringify(savedItems));
+                    renderSavedItems();
+                    if (selected.length > 1) renderTagsChips(getCommonTags(selected), selected); else renderTagsChips((selected[0].tags||[]).map(t => t.toLowerCase()), [selected[0]]);
+                    input.value = '';
+                    input.focus();
+                };
+                addBtn.onclick = onAdd;
+                input.onkeypress = (e) => { if (e.key === 'Enter') { e.preventDefault(); onAdd(); } };
+                new bootstrap.Modal(document.getElementById('editTagsModal')).show();
+            }
 
             searchInput.addEventListener('input', renderSavedItems);
             document.getElementById('saved-tab').addEventListener('shown.bs.tab', renderSavedItems);
@@ -721,6 +1106,7 @@
                 totalCarbsEl.textContent = `${total.toFixed(1)} g`;
                 document.getElementById('result-container').style.maxHeight = '500px';
                 resultCard.classList.add('fade-in');
+                try { window.ccHaptic && window.ccHaptic('Medium'); } catch {}
             });
 
             // Convenience: press Enter in either input to calculate
@@ -736,6 +1122,52 @@
             closeResultCard.addEventListener('click', () => {
                 resultCard.classList.remove('fade-in');
                 document.getElementById('result-container').style.maxHeight = '0px';
+                try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
+            });
+
+            // Save tags handler
+            if (saveTagsBtn) {
+                saveTagsBtn.addEventListener('click', () => {
+                    const input = document.getElementById('editTagsInput');
+                    const id = Number(input.dataset.itemId || '0');
+                    const raw = (input.value || '').split(',').map(s => s.trim()).filter(Boolean);
+                    const seen = new Set();
+                    const tags = raw.filter(t => { const k = t.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+                    const idx = savedItems.findIndex(i => Number(i.id) === id);
+                if (idx >= 0) {
+                    savedItems[idx].tags = tags;
+                    localStorage.setItem('savedItems', JSON.stringify(savedItems));
+                    renderSavedItems();
+                }
+                try { bootstrap.Modal.getInstance(document.getElementById('editTagsModal'))?.hide(); } catch {}
+                try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
+            });
+            }
+
+            // Saved Item long-press actions
+            window.showSavedItemActions = (item) => {
+                currentActionsItemId = Number(item.id);
+                try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
+                try { itemActionsModal?.show(); } catch {}
+            };
+            if (itemActionEditTags) itemActionEditTags.addEventListener('click', () => {
+                const item = savedItems.find(i => Number(i.id) === currentActionsItemId);
+                if (!item) return;
+                const input = document.getElementById('editTagsInput');
+                input.value = (Array.isArray(item.tags) ? item.tags : []).join(', ');
+                input.dataset.itemId = String(item.id);
+                document.getElementById('editTagsModalLabel').textContent = `Tags for ${item.label}`;
+                try { itemActionsModal?.hide(); } catch {}
+                try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
+                new bootstrap.Modal(document.getElementById('editTagsModal')).show();
+            });
+            if (itemActionRemove) itemActionRemove.addEventListener('click', () => {
+                const item = savedItems.find(i => Number(i.id) === currentActionsItemId);
+                if (!item) return;
+                itemToRemove = item;
+                try { itemActionsModal?.hide(); } catch {}
+                try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
+                confirmRemoveModal.show();
             });
 
             addToListBtn.addEventListener('click', () => {
@@ -751,11 +1183,13 @@
 
                 if (label === '') {
                     noLabelError.style.display = 'block';
+                    try { window.ccNotify && window.ccNotify('Warning'); } catch {}
                     return;
                 }
 
                 if (savedItems.some(item => item.label.toLowerCase() === label.toLowerCase())) {
                     labelError.style.display = 'block';
+                    try { window.ccNotify && window.ccNotify('Warning'); } catch {}
                     return;
                 }
 
@@ -765,11 +1199,13 @@
                         label,
                         totalCarbs,
                         carbsPer100g: carbs,
-                        servingSize: weight
+                        servingSize: weight,
+                        tags: []
                     });
                     saveItems();
                     renderSavedItems();
                     labelInput.value = '';
+                    try { window.ccHaptic && window.ccHaptic('Heavy'); } catch {}
                 }
             });
 
@@ -780,6 +1216,7 @@
                     renderSavedItems();
                     itemToRemove = null;
                     confirmRemoveModal.hide();
+                    try { window.ccNotify && window.ccNotify('Warning'); } catch {}
                 }
             });
 
@@ -788,6 +1225,7 @@
                 document.getElementById('customLabelError').style.display = 'none';
                 document.getElementById('customNoLabelError').style.display = 'none';
                 addCustomItemModal.show();
+                try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
             });
 
             saveCustomItemBtn.addEventListener('click', () => {
@@ -802,11 +1240,13 @@
 
                 if (label === '') {
                     customNoLabelError.style.display = 'block';
+                    try { window.ccNotify && window.ccNotify('Warning'); } catch {}
                     return;
                 }
 
                 if (savedItems.some(item => item.label.toLowerCase() === label.toLowerCase())) {
                     customLabelError.style.display = 'block';
+                    try { window.ccNotify && window.ccNotify('Warning'); } catch {}
                     return;
                 }
 
@@ -816,11 +1256,13 @@
                         label,
                         totalCarbs: carbsInServing,
                         carbsPer100g: (carbsInServing / servingSize) * 100,
-                        servingSize: servingSize
+                        servingSize: servingSize,
+                        tags: []
                     });
                     saveItems();
                     renderSavedItems();
                     addCustomItemModal.hide();
+                    try { window.ccHaptic && window.ccHaptic('Heavy'); } catch {}
                 }
             });
 
@@ -1108,11 +1550,11 @@
                 renderResults(foodData, loadMore);
             };
 
-            onlineSearchBtn.addEventListener('click', () => handleOnlineSearch(false));
+            onlineSearchBtn.addEventListener('click', () => { try { window.ccHaptic && window.ccHaptic('Light'); } catch {} handleOnlineSearch(false); });
             onlineSearchInput.addEventListener('keypress', e => {
-                if (e.key === 'Enter') handleOnlineSearch(false);
+                if (e.key === 'Enter') { try { window.ccHaptic && window.ccHaptic('Light'); } catch {} handleOnlineSearch(false); }
             });
-            showMoreBtn.addEventListener('click', () => handleOnlineSearch(true));
+            showMoreBtn.addEventListener('click', () => { try { window.ccHaptic && window.ccHaptic('Light'); } catch {} handleOnlineSearch(true); });
 
             const nutritionFactsModal = new bootstrap.Modal(document.getElementById('nutritionFactsModal'));
             const nutritionFactsModalTitle = document.getElementById('nutritionFactsModalTitle');
@@ -1147,6 +1589,7 @@
                 const listItem = event.target.closest('.online-search-result-item');
 
                 if (button) {
+                    try { window.ccHaptic && window.ccHaptic('Light'); } catch {}
                     // Prefer data-* attributes; if missing, compute from attached food payload
                     let cp100 = button.dataset.carbsPer100g;
                     let serve = button.dataset.servingGrams;
@@ -1212,7 +1655,7 @@
 
             updateApiStatusMessage();
 
-            // Show What's New once per version
+            // Show What's New once per version — defer if tour will run
             const versionTextEl = document.querySelector('.version-box a');
             const currentVersion = (() => {
                 const t = versionTextEl ? versionTextEl.textContent : '';
@@ -1221,26 +1664,434 @@
             })();
             const lastSeenVersion = localStorage.getItem('lastSeenVersion');
             const alwaysShowWhatsNew = localStorage.getItem('alwaysShowWhatsNew') === 'true';
+            // One-time reset so vX shows even if previously dismissed
+            try {
+                if (currentVersion) {
+                    const resetKey = `wnResetDone_${currentVersion}`;
+                    if (!localStorage.getItem(resetKey)) {
+                        localStorage.removeItem('lastSeenVersion');
+                        localStorage.setItem(resetKey, '1');
+                    }
+                }
+            } catch (_) {}
             if (currentVersion && (alwaysShowWhatsNew || currentVersion !== lastSeenVersion)) {
                 const whatsNewEl = document.getElementById('whatsNewModal');
                 if (whatsNewEl && window.bootstrap) {
-                    // Mark as seen unless forced by test setting
-                    if (!alwaysShowWhatsNew) {
-                        localStorage.setItem('lastSeenVersion', currentVersion);
-                    }
-                    // Inject version into banner
+                    // Prepare content
                     const vEl = document.getElementById('whatsNewVersion');
                     if (vEl) vEl.textContent = `v${currentVersion}`;
-                    const m = new bootstrap.Modal(whatsNewEl);
-                    // Ensure link also marks as seen (redundant but safe)
-                    document.getElementById('seeUpdatesBtn')?.addEventListener('click', () => {
+                    const showWhatsNew = () => {
+                        const m = new bootstrap.Modal(whatsNewEl);
+                        document.getElementById('seeUpdatesBtn')?.addEventListener('click', () => {
+                            if (!alwaysShowWhatsNew) localStorage.setItem('lastSeenVersion', currentVersion);
+                        });
                         if (!alwaysShowWhatsNew) localStorage.setItem('lastSeenVersion', currentVersion);
-                    });
-                    // Wait a moment before showing to avoid interrupting first paint
-                    setTimeout(() => m.show(), 800);
+                        setTimeout(() => m.show(), 400);
+                    };
+                    // Determine if the tour will run; if so, defer showing until it finishes
+                    const params = new URLSearchParams(location.search);
+                    const alwaysTour = localStorage.getItem('alwaysShowTour') === 'true';
+                    const forceTourNext = localStorage.getItem('forceTourNext') === 'true';
+                    const hasSeenTour = localStorage.getItem('tourSeen') === 'true';
+                    const tourWillRun = (params.get('tour') === '1') || alwaysTour || forceTourNext || !hasSeenTour;
+                    if (tourWillRun) {
+                        window.addEventListener('app:tour-finished', () => showWhatsNew(), { once: true });
+                    } else {
+                        showWhatsNew();
+                    }
                 }
             }
         });
+    </script>
+
+    <!-- Lightweight onboarding tour (no external deps) -->
+    <script>
+        (function(){
+            const qs = (sel) => document.querySelector(sel);
+            const params = new URLSearchParams(location.search);
+            const alwaysTour = localStorage.getItem('alwaysShowTour') === 'true';
+            const shouldForce = params.get('tour') === '1' || localStorage.getItem('forceTourNext') === 'true' || alwaysTour;
+            const hasSeen = localStorage.getItem('tourSeen') === 'true';
+
+            const steps = [
+                { sel: '#carbsPer100g', title: 'Carbs per 100g', text: 'Enter carbohydrate per 100g from the nutrition label.' },
+                { sel: '#foodWeight',   title: 'Serving weight',   text: 'Enter the weight of your portion in grams.' },
+                { sel: '#calculateBtn', title: 'Calculate',        text: 'Tap Calculate to get total carbs for your serving.' },
+                { sel: '#onlineSearchInput', title: 'Online Search', text: 'Find foods from databases. We added a few examples below.', before: () => { activateSearchTab(); injectDemoResults(); } },
+                { sel: '#tour-demo-use-btn', title: 'Use button', text: 'Use fills the form with that item and runs a calculation.', before: () => { activateSearchTab(); injectDemoResults(); }, onNext: () => { try { const b = document.getElementById('tour-demo-use-btn'); if (b) { state.demoName = b.dataset.name || 'Banana'; b.click(); } else { document.getElementById('tour-demo-use-btn')?.click(); } } catch(_) {} } },
+                { sel: '#resultCard', title: 'Total Carbohydrates', text: 'This card shows the result for your portion. You can label it and save it for later.' },
+                { sel: '#addToListBtn', title: 'Add to Saved', text: 'Tap Add to save this as a card in Saved Items. Next, we’ll open Saved Items.', onNext: () => { try { document.getElementById('addToListBtn')?.click(); } catch(_) {} try { activateSavedTab(); markSavedRow(); } catch(_) {} } },
+                { sel: '#tour-saved-row', title: 'Saved Banana', text: 'Your saved card shows here in the list.', before: () => { activateSavedTab(); markSavedRow(); } },
+                { sel: '#tour-saved-row .use-btn', title: 'Use', text: 'Use fills the calculator with this saved card.', before: () => { activateSavedTab(); markSavedRow(); }, onNext: () => { try { document.querySelector('#tour-saved-row .use-btn')?.click(); highlightTotalCarbs(); } catch(_) {} } },
+                { sel: '#tour-saved-row', title: 'Select items', text: 'Long‑press a saved item to select it. Select many to edit tags or remove.', before: () => { try { activateSavedTab(); markSavedRow(); const li = document.getElementById('tour-saved-row'); const id = Number(li?.dataset.itemId||''); if (!Number.isNaN(id)) window.ccEnterSelectionMode && window.ccEnterSelectionMode(id); } catch(_) {} } },
+                { sel: '#selectionBar .pill', title: 'Selection actions', text: 'This is selection mode — hold a saved item to enter this mode. Use the pill to edit tags or remove; Cancel exits.' },
+                { sel: '#selectionEditTagsBtn', title: 'Edit tags', text: 'Tap to add or remove tags for all selected items.' },
+                { sel: '#selectionCancelBtn', title: 'Done selecting', text: 'Cancel selection to return to normal mode.', onNext: () => { try { document.getElementById('selectionCancelBtn')?.click(); } catch(_) {} } },
+                { sel: '.info-fab', title: 'Settings', text: 'Open Settings to change theme and the Roundness of list items.' }
+            ];
+
+            let state = { i: 0, backdrop: null, tip: null, highlighted: null, demoName: null };
+
+            function inViewport(rect){
+                const vh = window.innerHeight, vw = window.innerWidth;
+                return rect.top >= 0 && rect.left >= 0 && rect.bottom <= vh && rect.right <= vw;
+            }
+
+            function ensureVisible(el){
+                try {
+                    const st = window.getComputedStyle(el);
+                    const insideModal = !!el.closest('.modal.show');
+                    if (st.position !== 'fixed' && !insideModal) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                } catch(_) {}
+            }
+
+            function placeTooltip(el){
+                const r = el.getBoundingClientRect();
+                const tip = state.tip;
+                const margin = 10;
+                const vw = window.innerWidth, vh = window.innerHeight;
+
+                // Default placement: below, clamped within viewport
+                let top = r.bottom + margin;
+                let left = Math.min(Math.max(r.left, 12), vw - tip.offsetWidth - 12);
+
+                // If bottom overflows, place above
+                if (top + tip.offsetHeight > vh - 12) {
+                    top = Math.max(12, r.top - tip.offsetHeight - margin);
+                }
+
+                // Improve placement for bottom-right anchored actions (like settings FAB)
+                const isBottomRight = (r.right > vw * 0.66) && (r.bottom > vh * 0.66);
+                if (isBottomRight) {
+                    // Right-align tooltip to element and show above when possible
+                    left = Math.min(Math.max(r.right - tip.offsetWidth, 12), vw - tip.offsetWidth - 12);
+                    top = Math.max(12, r.top - tip.offsetHeight - margin);
+                }
+
+                tip.style.top = top + 'px';
+                tip.style.left = left + 'px';
+            }
+
+            function cleanupHighlight(){
+                if (state.highlighted) state.highlighted.classList.remove('tour-highlight');
+                state.highlighted = null;
+            }
+
+            function isVisible(el){
+                if (!el) return false;
+                const st = window.getComputedStyle(el);
+                if (st.display === 'none' || st.visibility === 'hidden' || Number(st.opacity) === 0) return false;
+                const r = el.getBoundingClientRect();
+                return r.width > 0 && r.height > 0;
+            }
+
+            function showStep(idx){
+                if (idx < 0 || idx >= steps.length) return endTour(true);
+                state.i = idx;
+                const s = steps[idx];
+                // Optional hook to prep UI for this step (e.g., switch tabs, inject demo items)
+                try { if (typeof s.before === 'function') s.before(); } catch(_) {}
+
+                let tries = 0;
+                const attempt = () => {
+                    const el = qs(s.sel);
+                    if (!el || !isVisible(el)) {
+                        if (tries++ < 25) {
+                            try { if (typeof s.before === 'function') s.before(); } catch(_) {}
+                            return setTimeout(attempt, 120);
+                        }
+                        return next();
+                    }
+                    ensureVisible(el);
+                    cleanupHighlight();
+                    el.classList.add('tour-highlight');
+                    state.highlighted = el;
+
+                    // Build tooltip content
+                    state.tip.innerHTML = '';
+                    const title = document.createElement('div');
+                    title.className = 'tour-title';
+                    title.textContent = s.title;
+                    const text = document.createElement('div');
+                    text.className = 'tour-text';
+                    text.textContent = s.text;
+                    const btns = document.createElement('div');
+                    btns.className = 'tour-buttons';
+                    const skip = document.createElement('button');
+                    skip.className = 'tour-btn-skip';
+                    skip.textContent = 'Skip';
+                    skip.addEventListener('click', () => endTour(true));
+                    const prev = document.createElement('button');
+                    prev.className = 'tour-btn-prev';
+                    prev.textContent = 'Back';
+                    prev.disabled = idx === 0;
+                    prev.addEventListener('click', prevStep);
+                    const nextBtn = document.createElement('button');
+                    nextBtn.className = 'tour-btn-next';
+                    nextBtn.textContent = (idx === steps.length - 1) ? 'Done' : 'Next';
+                    nextBtn.addEventListener('click', () => {
+                        try { if (typeof s.onNext === 'function') s.onNext(); } catch(_) {}
+                        next();
+                    });
+                    btns.append(skip, prev, nextBtn);
+                    state.tip.append(title, text, btns);
+
+                    // After content is in DOM, position near target
+                    requestAnimationFrame(() => placeTooltip(el));
+                };
+                attempt();
+            }
+
+            function next(){ showStep(state.i + 1); }
+            function prevStep(){ showStep(state.i - 1); }
+
+            function endTour(markSeen){
+                cleanupHighlight();
+                state.backdrop?.remove();
+                state.tip?.remove();
+                if (markSeen) localStorage.setItem('tourSeen', 'true');
+                localStorage.removeItem('forceTourNext');
+                window.removeEventListener('resize', onResize);
+                window.removeEventListener('keydown', onKey);
+                try { removeDemoResults(); } catch(_) {}
+                try { document.getElementById('tour-saved-row')?.removeAttribute('id'); } catch(_) {}
+                try { window.dispatchEvent(new CustomEvent('app:tour-finished')); } catch(_) {}
+            }
+
+            function onResize(){
+                if (state.highlighted) placeTooltip(state.highlighted);
+            }
+            function onKey(e){
+                if (e.key === 'Escape') endTour(true);
+                else if (e.key === 'ArrowRight') next();
+                else if (e.key === 'ArrowLeft') prevStep();
+            }
+
+            function startTour(){
+                // Build backdrop and tip
+                state.backdrop = document.createElement('div');
+                state.backdrop.className = 'tour-backdrop';
+                // Disable click-to-exit: backdrop blocks interactions but does not close the tour
+                state.backdrop.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); });
+                document.body.appendChild(state.backdrop);
+                state.tip = document.createElement('div');
+                state.tip.className = 'tour-tooltip';
+                document.body.appendChild(state.tip);
+
+                window.addEventListener('resize', onResize);
+                window.addEventListener('keydown', onKey);
+                showStep(0);
+            }
+
+            function activateSearchTab(){
+                const tab = document.getElementById('search-tab');
+                if (tab && !tab.classList.contains('active')) {
+                    tab.click();
+                }
+            }
+
+            function activateSavedTab(){
+                const tab = document.getElementById('saved-tab');
+                if (tab && !tab.classList.contains('active')) {
+                    tab.click();
+                }
+            }
+
+            let demoInjected = false;
+            function injectDemoResults(){
+                if (demoInjected) return;
+                const list = document.getElementById('onlineSearchResults');
+                if (!list) return;
+                const samples = [
+                    { name: 'Banana', grams: 118, carbs: 27.0 },
+                    { name: 'White Bread Slice', grams: 25, carbs: 12.4 },
+                    { name: 'Cooked Rice (1 cup)', grams: 158, carbs: 44.5 }
+                ];
+                samples.forEach((s, idx) => {
+                    const cp100 = s.grams > 0 ? (s.carbs / s.grams) * 100 : 0;
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center online-search-result-item';
+                    li.setAttribute('data-tour-demo', 'true');
+                    li.setAttribute('data-food', JSON.stringify({
+                        food_name: s.name,
+                        serving_weight_grams: s.grams,
+                        nf_total_carbohydrate: s.carbs
+                    }));
+                    li.innerHTML = `
+                        <div class="list-item-left me-2">
+                            <strong class="d-block">${s.name}</strong>
+                            <small class="text-muted meta-inline">
+                                <span class="marquee__inner">
+                                    <span>Serving: ${s.grams.toFixed(1)}g | Carbs In Serving: ${s.carbs.toFixed(1)}g</span>
+                                    <span aria-hidden="true">Serving: ${s.grams.toFixed(1)}g | Carbs In Serving: ${s.carbs.toFixed(1)}g</span>
+                                </span>
+                            </small>
+                        </div>
+                        <div class="list-item-actions">
+                            <button class="btn btn-sm btn-outline-success use-online-item-btn"
+                                ${idx === 0 ? 'id="tour-demo-use-btn"' : ''}
+                                data-carbs-per-100g="${cp100.toFixed(2)}"
+                                data-serving-grams="${s.grams.toFixed(1)}"
+                                data-name="${s.name}">
+                                <i class="bi bi-arrow-up-right-square"></i> Use
+                            </button>
+                        </div>`;
+                    list.prepend(li);
+                });
+                demoInjected = true;
+            }
+
+            function removeDemoResults(){
+                document.querySelectorAll('#onlineSearchResults [data-tour-demo="true"]').forEach(n => n.remove());
+                demoInjected = false;
+            }
+
+            function markSavedRow(){
+                const label = state.demoName || document.getElementById('label')?.value || '';
+                const list = document.getElementById('savedItemsList');
+                if (!list) return;
+                // Clear previous mark
+                const prev = document.getElementById('tour-saved-row');
+                if (prev) prev.removeAttribute('id');
+                const items = Array.from(list.querySelectorAll('li.list-group-item'));
+                let match = items.find(li => (li.querySelector('strong')?.textContent || '').trim().toLowerCase() === label.trim().toLowerCase());
+                if (!match) match = items[0];
+                if (match) match.id = 'tour-saved-row';
+            }
+            function ensureCustomModalOpen(){
+                const modalEl = document.getElementById('addCustomItemModal');
+                if (!modalEl) return;
+                const isOpen = modalEl.classList.contains('show');
+                if (!isOpen) document.getElementById('addCustomItemBtn')?.click();
+            }
+
+            function prefillCustomDemo({ step } = {}){
+                try {
+                    const items = JSON.parse(localStorage.getItem('savedItems') || '[]');
+                    const base = 'Tour Custom Item';
+                    let label = base;
+                    let i = 2;
+                    const lower = new Set(items.map(it => (it.label||'').toLowerCase()));
+                    while (lower.has(label.toLowerCase())) { label = `${base} ${i++}`; }
+
+                    const labelEl = document.getElementById('customLabel');
+                    const sizeEl = document.getElementById('servingSize');
+                    const carbsEl = document.getElementById('carbsInServing');
+                    if (!labelEl || !sizeEl || !carbsEl) return;
+                    if (step === 'label' || step === 'all') labelEl.value = label;
+                    if (step === 'serving' || step === 'all') sizeEl.value = '45';
+                    if (step === 'carbs' || step === 'all') carbsEl.value = '25';
+                } catch(_) {}
+            }
+
+            function highlightTotalCarbs(){
+                let tries = 0;
+                const attempt = () => {
+                    const rc = document.getElementById('resultCard');
+                    const tc = document.getElementById('totalCarbs');
+                    if (rc && tc && rc.classList.contains('fade-in')) {
+                        rc.classList.add('tour-result-spot');
+                        tc.classList.add('tour-pop');
+                        // Ensure it’s visible
+                        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(_) { window.scrollTo(0,0); }
+                        setTimeout(() => {
+                            rc.classList.remove('tour-result-spot');
+                            tc.classList.remove('tour-pop');
+                        }, 1800);
+                    } else if (tries < 12) {
+                        tries++;
+                        setTimeout(attempt, 120);
+                    }
+                };
+                attempt();
+            }
+
+            // Start if first run or forced
+            if (shouldForce || !hasSeen) {
+                // Defer a touch to allow initial layout/animations to settle
+                window.addEventListener('load', () => setTimeout(startTour, 700));
+            }
+        })();
+    </script>
+
+    <script type="module">
+      import { StatusBar, Style } from 'https://cdn.jsdelivr.net/npm/@capacitor/status-bar@latest/dist/esm/index.js';
+      import { EdgeToEdge } from 'https://cdn.jsdelivr.net/npm/@capawesome/capacitor-android-edge-to-edge-support@latest/dist/esm/index.js';
+      import { App } from 'https://cdn.jsdelivr.net/npm/@capacitor/app@latest/dist/esm/index.js';
+      import { Haptics, ImpactStyle, NotificationType } from 'https://cdn.jsdelivr.net/npm/@capacitor/haptics@latest/dist/esm/index.js';
+
+      const applyBars = async () => {
+        try {
+          const isDark = document.body.classList.contains('dark-mode');
+          const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+          // In portrait keep blue bar; in landscape make it transparent so content fills at camera side
+          const barColor = isLandscape ? '#00000000' : '#3498db';
+
+          // Ensure edge-to-edge is enabled and bars have a readable background
+          await EdgeToEdge.enable();
+          // Set both status & nav bar background colors
+          await EdgeToEdge.setBackgroundColor({ color: barColor });
+
+          // Draw under system bars; keep them visible
+          await StatusBar.setOverlaysWebView({ overlay: true });
+          await StatusBar.setBackgroundColor({ color: barColor });
+          // Prefer light icons by default for readability
+          await StatusBar.setStyle({ style: Style.Light });
+
+          // Apply insets to CSS vars so our overlay avoids the bars
+          try {
+            const { top, bottom, left, right } = await EdgeToEdge.getInsets();
+            document.documentElement.style.setProperty('--edge-top', `${top}px`);
+            document.documentElement.style.setProperty('--edge-bottom', `${bottom}px`);
+            document.documentElement.style.setProperty('--edge-left', `${left}px`);
+            document.documentElement.style.setProperty('--edge-right', `${right}px`);
+          } catch {}
+        } catch (err) {
+          console.log('EdgeToEdge/StatusBar not available:', err);
+        }
+      };
+
+      // Apply on load and when theme changes
+      applyBars();
+      window.addEventListener('storage', (e) => { if (e.key === 'theme') applyBars(); });
+      window.addEventListener('resize', applyBars);
+      window.addEventListener('orientationchange', applyBars);
+
+      // Expose haptics helper for non-module code
+      window.ccHaptic = async (level) => {
+        try {
+          const style = level === 'Light' ? ImpactStyle.Light : level === 'Heavy' ? ImpactStyle.Heavy : ImpactStyle.Medium;
+          await Haptics.impact({ style });
+        } catch {}
+      };
+      window.ccNotify = async (type) => {
+        try {
+          const t = type === 'Success' ? NotificationType.Success : type === 'Warning' ? NotificationType.Warning : NotificationType.Error;
+          await Haptics.notification({ type: t });
+        } catch {}
+      };
+
+      // Android hardware back button: go back if possible, else exit
+      try {
+        App.addListener('backButton', async ({ canGoBack }) => {
+          // Exit selection mode first if active
+          try { if (window.ccIsSelectionMode && window.ccIsSelectionMode()) { window.ccExitSelectionMode && window.ccExitSelectionMode(); return; } } catch {}
+          // Close any open Bootstrap modal first
+          const openModal = document.querySelector('.modal.show');
+          if (openModal) {
+            openModal.querySelector('[data-bs-dismiss="modal"]')?.click();
+            return;
+          }
+          if (canGoBack || document.referrer) {
+            history.back();
+          } else {
+            // Already top of history; stay on index or exit app
+            App.exitApp();
+          }
+        });
+      } catch {}
     </script>
 </body>
 </html>
